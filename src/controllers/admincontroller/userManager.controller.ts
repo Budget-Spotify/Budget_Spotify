@@ -7,8 +7,9 @@ class UsersManagerController {
             if (userList) {
                 res.status(200).json(userList)
             } else {
-                res.status(500).json({
-                    message: "Failed"
+                res.json({
+                    status:"failed",
+                    message: "there is something wrong"
                 })
             }
         }catch(err){

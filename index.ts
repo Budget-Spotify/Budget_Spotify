@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import DatabaseConnect from "./src/models/database-connect";
 import bodyParser from "body-parser";
+import authRouter from "./src/routers/authRouter/authRouter";
 
 const app = express();
 const PORT = 8000
@@ -13,6 +14,7 @@ DatabaseConnect
     .then(res => console.log('Connect DB successfully!'))
     .catch(err => console.log('DB connect failed'));
 
+app.use('/api', authRouter);
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });

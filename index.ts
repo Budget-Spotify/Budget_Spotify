@@ -13,7 +13,7 @@ DatabaseConnect
     .connectDB()
     .then(res => console.log('Connect DB successfully!'))
     .catch(err => console.log('DB connect failed'));
-app.use('/api',adminApiRouter)
+app.use('/admin',adminApiRouter)
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });

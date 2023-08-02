@@ -24,3 +24,4 @@ const songSchema = new Schema<ISongs>({
     uploader: {type: Schema.Types.ObjectId, ref: 'Users'}
 });
 export const Songs = model<ISongs>('Songs', songSchema, 'songs');
+// wtf?

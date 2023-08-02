@@ -4,7 +4,7 @@ import DatabaseConnect from "./src/models/database-connect";
 import bodyParser from "body-parser";
 
 const app = express();
-const PORT = 3000
+const PORT = 8000
 
 app.use(cors({origin: true, credentials: true}));
 app.use(bodyParser.json());

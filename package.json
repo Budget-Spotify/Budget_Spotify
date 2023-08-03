@@ -10,8 +10,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/connect-flash": "^0.0.37",
     "@types/connect-livereload": "^0.6.0",
+    "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
     "@types/mime-types": "^2.1.1",
     "@types/multer": "^1.4.7",

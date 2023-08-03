@@ -8,7 +8,6 @@ class UserController {
                 description,
                 fileURL,
                 avatar,
-                uploadTime,
                 singers,
                 composers,
                 tags,
@@ -35,7 +34,7 @@ class UserController {
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',
-                    songs: songs
+                    songs: songs.sort((a, b) => b.uploadTime - a.uploadTime)
                 });
             } else {
                 res.status(404).json({

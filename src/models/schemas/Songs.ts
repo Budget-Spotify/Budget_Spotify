@@ -5,7 +5,7 @@ interface ISongs {
     description: string;
     fileURL: string;
     avatar: string;
-    uploadTime: string;
+    uploadTime: number;
     singers: object[];
     composers: object[];
     tags: object[];
@@ -18,7 +18,7 @@ const songSchema = new Schema<ISongs>({
     description: String,
     fileURL: String,
     avatar: String,
-    uploadTime: String,
+    uploadTime: {type: Number, default: Date.now},
     singers: [{type: Schema.Types.ObjectId, ref: 'Singers'}],
     composers: [{type: Schema.Types.ObjectId, ref: 'Composers'}],
     tags: [{type: Schema.Types.ObjectId, ref: 'Tags'}],

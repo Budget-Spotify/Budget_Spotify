@@ -49,6 +49,11 @@ export class AuthController {
                 lastName: user.lastName,
                 username: user.username,
                 role: user.role,
+                phoneNumber: user.phoneNumber,
+                gender: user.gender,
+                avatar: user.avatar,
+                playlist: user.playlist,
+                songsUploaded: user.songsUploaded
             });
         } catch (error) {
             res.status(500).json({message: 'Server error!'});

@@ -14,7 +14,7 @@ DatabaseConnect
     .then(res => console.log('Connect DB successfully!'))
     .catch(err => console.log('DB connect failed'));
 
-app.use('/api', authRouter);
+app.use('/api/auth', authRouter);
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });

@@ -1,5 +1,5 @@
 import {Songs} from "../../models/schemas/Songs";
-
+import { Users } from "../../models/schemas/Users";
 class UserController {
     static async addSong(req, res) {
         try {
@@ -46,6 +46,24 @@ class UserController {
         } catch (err) {
             res.status(404).json({status: "failed", message: err.message});
         }
+    }
+    static async getDetail(req,res){
+       try{
+        let user =await Users.findOne({_id:req.body.id})
+        if(!user){
+            res.status(404).json({
+                status:"failed",
+                message:"user is not Exist"
+            })
+        }else{
+            res.status(200).json({
+                status:"succeeded",
+                user:user
+            })
+        }
+       }catch(err){
+        res.status(404).json({status: "failed", message: err.message});
+       }
     }
 }
 

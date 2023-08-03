@@ -4,4 +4,5 @@ const userRouter = express.Router();
 
 userRouter.post('/upload/song',userController.addSong)
 userRouter.get('/list/songs',userController.getSongs);
+userRouter.get('/info',userController.getDetail)
 export default userRouter

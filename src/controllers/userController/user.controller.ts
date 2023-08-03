@@ -32,13 +32,14 @@ class UserController {
     static async getSongs(req, res) {
         try {
             let songs = await Songs.find();
-            if (songs) {
+            if (songs.length > 0) {
                 res.status(200).json({
-                    message: 'Success',
+                    status: 'succeeded',
                     songs: songs
                 });
             } else {
                 res.status(404).json({
+                    status: 'failed',
                     message: 'No data'
                 });
             }

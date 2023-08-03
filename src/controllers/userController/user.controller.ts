@@ -13,12 +13,18 @@ class UserController {
                 composers,
                 tags,
                 uploader,
-                isPublished
+                isPublic
             }
                 = req.body;
-            let existingSong = await Songs.find({songName, singers, composers})
-            if (existingSong) res.status(409).json({status: "failed", message: "Song already existed"})
-            else res.status(200).json({status: "succeeded", message: "Song added"})
+            let existingSong = await Songs.find({songName, uploader})
+            if (existingSong.length>0) {
+                res.status(409).json({status: "failed", message: "Song already existed"})
+            }
+            else {
+                let song = new Songs(req.body)
+                await song.save()
+                res.status(200).json({status: "succeeded", message: "Song added",song:song})
+            }
         } catch (e) {
             res.status(404).json({status:"failed", message: e.message})
         }

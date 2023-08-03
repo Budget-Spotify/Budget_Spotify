@@ -10,6 +10,7 @@ interface ISongs {
     composers: object[];
     tags: object[];
     uploader: object;
+    isPublished: boolean;
 }
 
 const songSchema = new Schema<ISongs>({
@@ -21,6 +22,7 @@ const songSchema = new Schema<ISongs>({
     singers: [{type: Schema.Types.ObjectId, ref: 'Singers'}],
     composers: [{type: Schema.Types.ObjectId, ref: 'Composers'}],
     tags: [{type: Schema.Types.ObjectId, ref: 'Tags'}],
-    uploader: {type: Schema.Types.ObjectId, ref: 'Users'}
+    uploader: {type: Schema.Types.ObjectId, ref: 'Users'},
+    isPublished: Boolean
 });
 export const Songs = model<ISongs>('Songs', songSchema, 'songs');

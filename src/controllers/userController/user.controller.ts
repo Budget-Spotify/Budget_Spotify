@@ -55,7 +55,7 @@ class UserController {
             if (!user) {
                 res.status(404).json({
                     status: "failed",
-                    message: "user is not Exist"
+                    message: "User does not Exist"
                 })
             } else {
                 res.status(200).json({
@@ -78,54 +78,50 @@ class UserController {
                 });
             }
             const isPasswordValid = await bcrypt.compare(oldpassword, user.password);
-            if (isPasswordValid) {
-                if (newpassword === newpasswordconfirm) {
-                    const saltRounds = 10;
-                    const hashedPassword = await bcrypt.hash(newpassword, saltRounds);
-                    user.password = hashedPassword
-                    await user.save()
-                    res.status(200).json({
-                        status: "succeeded",
-                        newPassword: user.password
-                    })
-                } else {
-                    res.status(401).json({
-                        status: "failed",
-                        message: "Incorrect password confirm!"
-                    })
-                }
-            } else {
+            if (!isPasswordValid) {
                 return res.status(401).json({
                     status: "failed",
                     message: 'Incorrect password!'
                 });
             }
+            if (newpassword !== newpasswordconfirm) {
+                res.status(401).json({
+                    status: "failed",
+                    message: "Incorrect password confirm!"
+                })
+            }
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(newpassword, saltRounds);
+            user.password = hashedPassword
+            await user.save()
+            res.status(200).json({
+                status: "succeeded",
+                newPassword: user.password
+            })
         } catch (err) {
             res.status(404).json({ status: "failed", message: err.message });
         }
     }
-    static async editInfo(req,res) {
+    static async editInfo(req, res) {
         const user = await Users.findOne({ _id: req.body.id });
-        const {firstName,lastName,phoneNumber,gender,avatar} = req.body;
+        const { firstName, lastName, phoneNumber, gender, avatar } = req.body;
         if (!user) {
             return res.status(404).json({
                 status: "failed",
                 message: 'User does not exist!'
             });
-        }else{
-            user.firstName=firstName
-            user.lastName=lastName
-            user.phoneNumber=phoneNumber
-            user.gender=gender
-            user.avatar=avatar
+        } else {
+            user.firstName = firstName
+            user.lastName = lastName
+            user.phoneNumber = phoneNumber
+            user.gender = gender
+            user.avatar = avatar
             await user.save()
             res.status(200).json({
-                status:"succeeded",
-                userEdited:user
+                status: "succeeded",
+                userEdited: user
             })
         }
-
     }
 }
-
 export default UserController

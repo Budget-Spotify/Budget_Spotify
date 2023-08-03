@@ -1,5 +1,7 @@
-import {Songs} from "../../models/schemas/Songs";
+import { Songs } from "../../models/schemas/Songs";
 import { Users } from "../../models/schemas/Users";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 class UserController {
     static async addSong(req, res) {
         try {
@@ -16,16 +18,16 @@ class UserController {
                 isPublic
             }
                 = req.body;
-            let existingSong = await Songs.find({songName, uploader})
+            let existingSong = await Songs.find({ songName, uploader })
             if (existingSong.length > 0) {
-                res.status(409).json({status: "failed", message: "Song already existed"})
+                res.status(409).json({ status: "failed", message: "Song already existed" })
             } else {
                 let song = new Songs(req.body)
                 await song.save()
-                res.status(200).json({status: "succeeded", message: "Song added", song: song})
+                res.status(200).json({ status: "succeeded", message: "Song added", song: song })
             }
         } catch (e) {
-            res.status(404).json({status: "failed", message: e.message})
+            res.status(404).json({ status: "failed", message: e.message })
         }
     }
 
@@ -44,26 +46,85 @@ class UserController {
                 });
             }
         } catch (err) {
-            res.status(404).json({status: "failed", message: err.message});
+            res.status(404).json({ status: "failed", message: err.message });
         }
     }
-    static async getDetail(req,res){
-       try{
-        let user =await Users.findOne({_id:req.body.id})
-        if(!user){
-            res.status(404).json({
-                status:"failed",
-                message:"user is not Exist"
-            })
+    static async getDetail(req, res) {
+        try {
+            let user = await Users.findOne({ _id: req.body.id })
+            if (!user) {
+                res.status(404).json({
+                    status: "failed",
+                    message: "user is not Exist"
+                })
+            } else {
+                res.status(200).json({
+                    status: "succeeded",
+                    user: user
+                })
+            }
+        } catch (err) {
+            res.status(404).json({ status: "failed", message: err.message });
+        }
+    }
+    static async editPassword(req, res) {
+        try {
+            const user = await Users.findOne({ _id: req.body.id });
+            const { oldpassword, newpassword, newpasswordconfirm } = req.body;
+            if (!user) {
+                return res.status(404).json({
+                    status: "failed",
+                    message: 'User does not exist!'
+                });
+            }
+            const isPasswordValid = await bcrypt.compare(oldpassword, user.password);
+            if (isPasswordValid) {
+                if (newpassword === newpasswordconfirm) {
+                    const saltRounds = 10;
+                    const hashedPassword = await bcrypt.hash(newpassword, saltRounds);
+                    user.password = hashedPassword
+                    await user.save()
+                    res.status(200).json({
+                        status: "succeeded",
+                        newPassword: user.password
+                    })
+                } else {
+                    res.status(401).json({
+                        status: "failed",
+                        message: "Incorrect password confirm!"
+                    })
+                }
+            } else {
+                return res.status(401).json({
+                    status: "failed",
+                    message: 'Incorrect password!'
+                });
+            }
+        } catch (err) {
+            res.status(404).json({ status: "failed", message: err.message });
+        }
+    }
+    static async editInfo(req,res) {
+        const user = await Users.findOne({ _id: req.body.id });
+        const {firstName,lastName,phoneNumber,gender,avatar} = req.body;
+        if (!user) {
+            return res.status(404).json({
+                status: "failed",
+                message: 'User does not exist!'
+            });
         }else{
+            user.firstName=firstName
+            user.lastName=lastName
+            user.phoneNumber=phoneNumber
+            user.gender=gender
+            user.avatar=avatar
+            await user.save()
             res.status(200).json({
                 status:"succeeded",
-                user:user
+                userEdited:user
             })
         }
-       }catch(err){
-        res.status(404).json({status: "failed", message: err.message});
-       }
+
     }
 }
 

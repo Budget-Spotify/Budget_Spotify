@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import DatabaseConnect from "./src/models/database-connect";
 import bodyParser from "body-parser";
-import adminApiRouter from "./src/routers/admin.router";
+import adminApiRouter from "./src/routers/adminRouter/admin.router";
 import authRouter from "./src/routers/authRouter/authRouter";
 
 const app = express();

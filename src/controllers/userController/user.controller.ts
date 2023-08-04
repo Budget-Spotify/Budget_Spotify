@@ -10,7 +10,6 @@ class UserController {
                 description,
                 fileURL,
                 avatar,
-                uploadTime,
                 singers,
                 composers,
                 tags,
@@ -33,11 +32,11 @@ class UserController {
 
     static async getSongs(req, res) {
         try {
-            let songs = await Songs.find();
+            let songs = await Songs.find().sort({uploadTime: -1});
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',
-                    songs: songs
+                    songs: songs,
                 });
             } else {
                 res.status(404).json({
@@ -124,6 +123,26 @@ class UserController {
                 status: "succeeded",
                 userEdited: user
             })
+        }
+    }
+
+    static async getOneSong(req, res) {
+        try {
+            let songId = req.params.id;
+            let song = await Songs.findOne({_id: songId});
+            if (song) {
+                res.status(200).json({
+                    status: 'succeeded',
+                    song: song
+                })
+            } else {
+                res.status(404).json({
+                    status: 'failed',
+                    message: 'No data'
+                });
+            }
+        } catch (err) {
+            res.status(404).json({status: "failed", message: err.message});
         }
     }
 }

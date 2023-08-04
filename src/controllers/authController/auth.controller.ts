@@ -46,7 +46,7 @@ export class AuthController {
                 message: 'Logged in successfully!',
                 accessToken: token,
                 user: {
-                    _id: user._id
+                    _id: user._id,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     username: user.username,

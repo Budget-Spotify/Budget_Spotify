@@ -72,23 +72,26 @@ class UserController {
             const user = await Users.findOne({ _id: req.body.id });
             const { oldpassword, newpassword, newpasswordconfirm } = req.body;
             if (!user) {
-                return res.status(404).json({
+                const data={
                     status: "failed",
                     message: 'User does not exist!'
-                });
+                }
+                return res.json(data);
             }
             const isPasswordValid = await bcrypt.compare(oldpassword, user.password);
             if (!isPasswordValid) {
-                return res.status(401).json({
+                const data={
                     status: "failed",
                     message: 'Incorrect password!'
-                });
+                }
+                return res.json(data);
             }
             if (newpassword !== newpasswordconfirm) {
-                res.status(401).json({
+                const data={
                     status: "failed",
                     message: "Incorrect password confirm!"
-                })
+                }
+               return res.json(data)
             }
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(newpassword, saltRounds);

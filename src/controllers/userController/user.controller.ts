@@ -30,11 +30,11 @@ class UserController {
 
     static async getSongs(req, res) {
         try {
-            let songs = await Songs.find();
+            let songs = await Songs.find().sort({uploadTime: -1});
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',
-                    songs: songs.sort((a, b) => b.uploadTime - a.uploadTime)
+                    songs: songs,
                 });
             } else {
                 res.status(404).json({

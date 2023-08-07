@@ -27,9 +27,7 @@ export class Security {
     }
 
     static verifyToken(req : any, res: any, next: any) { // use like middleware to verify login or not
-        console.log('aaaaaaaaa')
         const token = req.headers.token;
-        console.log(token)
         if (token) {
             const accessToken = token.split(" ")[1] // variable token include "Bearer + token" so i need delete Bearer
             security.verify(accessToken, Security.jwtSecretKey, (err: any, user) => {

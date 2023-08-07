@@ -66,6 +66,6 @@ export class Security {
     }
 
     static checkAdmin(req : any, res: any, next: any) {
-        req.user.admin ? next() : res.status(403).json("Only admin can do that");
+        req.headers.role === 'admin' ? next() : res.status(403).json("Only admin can do that");
     }
 }

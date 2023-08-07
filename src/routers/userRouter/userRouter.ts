@@ -7,9 +7,10 @@ const userRouter = express.Router();
 userRouter.post('/upload/song', userController.addSong)
 userRouter.get('/list/songs', userController.getSongs);
 userRouter.get('/song/detail/:id', userController.getOneSong);
-userRouter.post('/upload/song',userController.addSong)
-userRouter.get('/list/songs',userController.getSongs);
-userRouter.get('/info',userController.getDetail)
-userRouter.put('/editpassword',userController.editPassword)
-userRouter.put('/editinfo',userController.editInfo)
+userRouter.post('/upload/song', userController.addSong)
+userRouter.get('/list/songs', userController.getSongs);
+userRouter.get('/info', userController.getDetail)
+userRouter.put('/editpassword', userController.editPassword)
+userRouter.put('/editinfo', userController.editInfo)
+userRouter.delete('/song/delete', userController.deleteSong);
 export default userRouter

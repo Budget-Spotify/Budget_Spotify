@@ -1,7 +1,8 @@
 import {Users} from "../../models/schemas/Users";
-
+import {RefreshTokens} from "../../models/schemas/RefreshToken";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import {Security} from "../../security/security";
 
 export class AuthController {
     static async register(req: any, res: any) {
@@ -13,10 +14,17 @@ export class AuthController {
                 return res.status(400).json({message: 'User already exists!'});
             }
 
-            const saltRounds = 10;
-            const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-            const newUser = new Users({firstName, lastName, username, phoneNumber, gender, avatar, password: hashedPassword, role: 'user'});
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const newUser = new Users({
+                firstName,
+                lastName,
+                username,
+                phoneNumber,
+                gender,
+                avatar,
+                password: hashedPassword,
+                role: 'user'
+            });
             await newUser.save();
 
             res.status(201).json({message: 'Sign up success!'});
@@ -38,14 +46,20 @@ export class AuthController {
                 return res.status(401).json({message: 'Incorrect password!'});
             }
 
-            const token = jwt.sign({userId: user._id}, '1234567890', {
-                expiresIn: '3600',
+            const accessToken = Security.accessToken(user);
+            const refreshToken = Security.refreshToken(user);
+
+            await RefreshTokens.create({
+                refreshToken: refreshToken,
+                user: user
             });
 
             res.status(200).json({
                 message: 'Logged in successfully!',
-                accessToken: token,
+                accessToken: accessToken,
+                refreshToken: refreshToken,
                 user: {
+                    _id: user._id,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     username: user.username,
@@ -60,5 +74,13 @@ export class AuthController {
         } catch (error) {
             res.status(500).json({message: 'Server error!'});
         }
+    }
+
+    static reqRefreshToken(req: any, res: any, next: any) { // use to refresh token
+        Security.reqRefreshToken(req, res, next)
+            .then()
+            .catch(e => {
+                console.log(e)
+            });
     }
 }

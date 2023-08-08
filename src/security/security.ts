@@ -1,7 +1,5 @@
-import security from 'jsonwebtoken';
 import jwt from "jsonwebtoken";
 import {RefreshTokens} from "../models/schemas/RefreshToken";
-import {Users} from "../models/schemas/Users";
 
 export class Security {
     private static jwtSecretKey: string = '123456';

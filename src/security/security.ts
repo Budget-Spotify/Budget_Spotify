@@ -26,18 +26,16 @@ export class Security {
         );
     }
 
-    static verifyToken(req : any, res: any, next: any) { // use like middleware to verify login or not
+    static verifyToken(req: any, res: any, next: any) { // use like middleware to verify login or not
         const token = req.headers.token;
-        if (token) {
-            const accessToken = token.split(" ")[1] // variable token include "Bearer + token" so i need delete Bearer
-            security.verify(accessToken, Security.jwtSecretKey, (err: any, user) => {
-                if (err) {
-                    res.status(403).json("Editing token is useless");
-                } else {
-                    req.user = user;
-                    next();
-                }
-            })
+        const accessToken = token.split(" ")[1] // variable token include "Bearer + token" so i need delete Bearer
+        if (accessToken !== "null") {
+            try {
+                req.user = jwt.verify(accessToken, Security.jwtSecretKey);
+                next();
+            } catch (e) {
+                res.status(403).json("Editing token is useless");
+            }
         } else {
             res.status(401).json("You are not authenticated");
         }
@@ -66,6 +64,7 @@ export class Security {
     }
 
     static checkAdmin(req : any, res: any, next: any) {
-        req.headers.role === 'admin' ? next() : res.status(403).json("Only admin can do that");
+        console.log(req.user.role)
+        req.user.role === 'admin' ? next() : res.status(403).json("Only admin can do that");
     }
 }

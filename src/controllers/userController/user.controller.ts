@@ -54,7 +54,8 @@ class UserController {
 
     static async getSongs(req, res) {
         try {
-            let songs = await Songs.find().sort({uploadTime: -1});
+            const userId = req.user.id;
+            let songs = await Songs.find({uploader: userId}).sort({uploadTime: -1});
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',

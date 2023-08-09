@@ -3,8 +3,8 @@ import UsersManagerController from "../../controllers/admincontroller/userManage
 import {Security} from "../../security/security";
 const adminApiRouter = express.Router()
 
-adminApiRouter.use(Security.verifyToken)
-adminApiRouter.use(Security.checkAdmin)
-adminApiRouter.get('/userlist', UsersManagerController.getUserList)
+adminApiRouter.use(Security.verifyToken, Security.checkAdmin);
+adminApiRouter.get('/userlist', UsersManagerController.getUserList);
+
 
 export default adminApiRouter

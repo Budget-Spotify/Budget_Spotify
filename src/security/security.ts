@@ -1,7 +1,5 @@
-import security from 'jsonwebtoken';
 import jwt from "jsonwebtoken";
 import {RefreshTokens} from "../models/schemas/RefreshToken";
-import {Users} from "../models/schemas/Users";
 
 export class Security {
     private static jwtSecretKey: string = '123456';
@@ -34,7 +32,7 @@ export class Security {
                 req.user = jwt.verify(accessToken, Security.jwtSecretKey);
                 next();
             } catch (e) {
-                res.status(403).json("Editing token is useless");
+                res.status(403).json("You are not admin");
             }
         } else {
             res.status(401).json("You are not authenticated");
@@ -64,7 +62,6 @@ export class Security {
     }
 
     static checkAdmin(req : any, res: any, next: any) {
-        console.log(req.user.role)
         req.user.role === 'admin' ? next() : res.status(403).json("Only admin can do that");
     }
 }

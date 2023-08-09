@@ -1,7 +1,8 @@
-import { Songs } from "../../models/schemas/Songs";
-import { Users } from "../../models/schemas/Users";
+import {Songs} from "../../models/schemas/Songs";
+import {Users} from "../../models/schemas/Users";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+
 class UserController {
     static async addSong(req, res) {
         try {
@@ -17,16 +18,37 @@ class UserController {
                 isPublic
             }
                 = req.body;
-            let existingSong = await Songs.find({ songName, uploader })
+            let existingSong = await Songs.find({songName, uploader})
             if (existingSong.length > 0) {
-                res.status(409).json({ status: "failed", message: "Song already existed" })
+                res.status(409).json({status: "failed", message: "Song already existed"})
             } else {
                 let song = new Songs(req.body)
                 await song.save()
-                res.status(200).json({ status: "succeeded", message: "Song added", song: song })
+                res.status(200).json({status: "succeeded", message: "Song added", song: song})
             }
         } catch (e) {
-            res.status(404).json({ status: "failed", message: e.message })
+            res.status(404).json({status: "failed", message: e.message})
+        }
+    }
+
+    static async deleteSong(req, res) {
+        try {
+            const song = await Songs.findOne({_id: req.body._id});
+            if (!song) {
+                const data = {
+                    status: "failed",
+                    message: 'Song does not exist!',
+                }
+                return res.status(404).json(data);
+            } else {
+                await Songs.deleteOne({_id: song._id});
+                res.status(200).json({
+                    status: "succeeded",
+                    message: 'The song has been deleted!'
+                })
+            }
+        } catch (err) {
+            res.status(404).json({status: "failed", message: err.message});
         }
     }
 
@@ -45,12 +67,13 @@ class UserController {
                 });
             }
         } catch (err) {
-            res.status(404).json({ status: "failed", message: err.message });
+            res.status(404).json({status: "failed", message: err.message});
         }
     }
+
     static async getDetail(req, res) {
         try {
-            let user = await Users.findOne({ _id: req.body.id })
+            let user = await Users.findOne({_id: req.body.id})
             if (!user) {
                 res.status(404).json({
                     status: "failed",
@@ -63,15 +86,16 @@ class UserController {
                 })
             }
         } catch (err) {
-            res.status(404).json({ status: "failed", message: err.message });
+            res.status(404).json({status: "failed", message: err.message});
         }
     }
+
     static async editPassword(req, res) {
         try {
-            const user = await Users.findOne({ _id: req.body.id });
-            const { oldpassword, newpassword, newpasswordconfirm } = req.body;
+            const user = await Users.findOne({_id: req.body.id});
+            const {oldpassword, newpassword, newpasswordconfirm} = req.body;
             if (!user) {
-                const data={
+                const data = {
                     status: "failed",
                     message: 'User does not exist!'
                 }
@@ -79,18 +103,18 @@ class UserController {
             }
             const isPasswordValid = await bcrypt.compare(oldpassword, user.password);
             if (!isPasswordValid) {
-                const data={
+                const data = {
                     status: "failed",
                     message: 'Incorrect password!'
                 }
                 return res.json(data);
             }
             if (newpassword !== newpasswordconfirm) {
-                const data={
+                const data = {
                     status: "failed",
                     message: "Incorrect password confirm!"
                 }
-               return res.json(data)
+                return res.json(data)
             }
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(newpassword, saltRounds);
@@ -101,12 +125,13 @@ class UserController {
                 newPassword: user.password
             })
         } catch (err) {
-            res.status(404).json({ status: "failed", message: err.message });
+            res.status(404).json({status: "failed", message: err.message});
         }
     }
+
     static async editInfo(req, res) {
-        const user = await Users.findOne({ _id: req.body.id });
-        const { firstName, lastName, phoneNumber, gender, avatar } = req.body;
+        const user = await Users.findOne({_id: req.body.id});
+        const {firstName, lastName, phoneNumber, gender, avatar} = req.body;
         if (!user) {
             return res.status(404).json({
                 status: "failed",
@@ -146,4 +171,5 @@ class UserController {
         }
     }
 }
+
 export default UserController

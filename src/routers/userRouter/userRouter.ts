@@ -12,6 +12,7 @@ userRouter.get('/list/songs', userController.getSongs);
 userRouter.get('/song/detail/:id', userController.getOneSong);
 userRouter.get('/info', userController.getDetail);
 userRouter.get('/playlist', userController.getPlayList);
+userRouter.get('/playlist/:playlistId', userController.getSongInPlaylist);
 userRouter.put('/editpassword', userController.editPassword);
 userRouter.put('/editinfo', userController.editInfo);
 userRouter.delete('/song/delete', userController.deleteSong);

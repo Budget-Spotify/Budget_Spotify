@@ -20,7 +20,7 @@ export class Security {
                 role: user.role
             },
             Security.JwtRefreshKey,
-            {expiresIn: "5m"}
+            {expiresIn: "5h"}
         );
     }
 

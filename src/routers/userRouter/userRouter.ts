@@ -1,5 +1,6 @@
 import express from "express";
 import userController from "../../controllers/userController/user.controller";
+import { Security } from "../../security/security";
 
 
 const userRouter = express.Router();
@@ -13,4 +14,5 @@ userRouter.get('/info', userController.getDetail);
 userRouter.put('/editpassword', userController.editPassword);
 userRouter.put('/editinfo', userController.editInfo);
 userRouter.delete('/song/delete', userController.deleteSong);
+userRouter.post('/playlist/create',userController.createPlaylist)
 export default userRouter;

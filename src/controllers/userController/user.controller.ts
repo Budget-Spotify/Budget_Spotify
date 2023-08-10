@@ -1,5 +1,6 @@
-import {Songs} from "../../models/schemas/Songs";
-import {Users} from "../../models/schemas/Users";
+import { Songs } from "../../models/schemas/Songs";
+import { Users } from "../../models/schemas/Users";
+import { Playlists } from "../../models/schemas/Playlists";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -18,22 +19,22 @@ class UserController {
                 isPublic
             }
                 = req.body;
-            let existingSong = await Songs.find({songName, uploader})
+            let existingSong = await Songs.find({ songName, uploader })
             if (existingSong.length > 0) {
-                res.status(409).json({status: "failed", message: "Song already existed"})
+                res.status(409).json({ status: "failed", message: "Song already existed" })
             } else {
                 let song = new Songs(req.body)
                 await song.save()
-                res.status(200).json({status: "succeeded", message: "Song added", song: song})
+                res.status(200).json({ status: "succeeded", message: "Song added", song: song })
             }
         } catch (e) {
-            res.status(404).json({status: "failed", message: e.message})
+            res.status(404).json({ status: "failed", message: e.message })
         }
     }
 
     static async deleteSong(req, res) {
         try {
-            const song = await Songs.findOne({_id: req.body._id});
+            const song = await Songs.findOne({ _id: req.body._id });
             if (!song) {
                 const data = {
                     status: "failed",
@@ -41,20 +42,20 @@ class UserController {
                 }
                 return res.status(404).json(data);
             } else {
-                await Songs.deleteOne({_id: song._id});
+                await Songs.deleteOne({ _id: song._id });
                 res.status(200).json({
                     status: "succeeded",
                     message: 'The song has been deleted!'
                 })
             }
         } catch (err) {
-            res.status(404).json({status: "failed", message: err.message});
+            res.status(404).json({ status: "failed", message: err.message });
         }
     }
 
     static async getSongs(req, res) {
         try {
-            let songs = await Songs.find().sort({uploadTime: -1});
+            let songs = await Songs.find().sort({ uploadTime: -1 });
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',
@@ -67,13 +68,13 @@ class UserController {
                 });
             }
         } catch (err) {
-            res.status(404).json({status: "failed", message: err.message});
+            res.status(404).json({ status: "failed", message: err.message });
         }
     }
 
     static async getDetail(req, res) {
         try {
-            let user = await Users.findOne({_id: req.body.id})
+            let user = await Users.findOne({ _id: req.body.id })
             if (!user) {
                 res.status(404).json({
                     status: "failed",
@@ -86,14 +87,14 @@ class UserController {
                 })
             }
         } catch (err) {
-            res.status(404).json({status: "failed", message: err.message});
+            res.status(404).json({ status: "failed", message: err.message });
         }
     }
 
     static async editPassword(req, res) {
         try {
-            const user = await Users.findOne({_id: req.body.id});
-            const {oldpassword, newpassword, newpasswordconfirm} = req.body;
+            const user = await Users.findOne({ _id: req.body.id });
+            const { oldpassword, newpassword, newpasswordconfirm } = req.body;
             if (!user) {
                 const data = {
                     status: "failed",
@@ -125,13 +126,13 @@ class UserController {
                 newPassword: user.password
             })
         } catch (err) {
-            res.status(404).json({status: "failed", message: err.message});
+            res.status(404).json({ status: "failed", message: err.message });
         }
     }
 
     static async editInfo(req, res) {
-        const user = await Users.findOne({_id: req.body.id});
-        const {firstName, lastName, phoneNumber, gender, avatar} = req.body;
+        const user = await Users.findOne({ _id: req.body.id });
+        const { firstName, lastName, phoneNumber, gender, avatar } = req.body;
         if (!user) {
             return res.status(404).json({
                 status: "failed",
@@ -154,7 +155,7 @@ class UserController {
     static async getOneSong(req, res) {
         try {
             let songId = req.params.id;
-            let song = await Songs.findOne({_id: songId});
+            let song = await Songs.findOne({ _id: songId });
             if (song) {
                 res.status(200).json({
                     status: 'succeeded',
@@ -167,7 +168,30 @@ class UserController {
                 });
             }
         } catch (err) {
-            res.status(404).json({status: "failed", message: err.message});
+            res.status(404).json({ status: "failed", message: err.message });
+        }
+    }
+    static async createPlaylist(req, res) {
+        try {
+            let user= await Users.findOne({_id:req.user.id})
+            let playlist = await Playlists.findOne({ playlistName: req.body.playlistName })
+            if (!playlist) {
+                let newPlayList = new Playlists({
+                    userID: req.user.id,
+                    playlistName: req.body.playlistName,
+                    avatar: req.body.avatar,
+                    uploadTime: new Date().getTime(),
+                    description: req.body.description,
+                })
+                await newPlayList.save()
+                user.playlist.push(newPlayList._id)
+                await user.save()
+                res.status(200).json({
+                    status: 'succeeded',
+                })
+            }
+        }catch(err){
+            res.status(404).json({ status: "failed", message: err.message });
         }
     }
 }

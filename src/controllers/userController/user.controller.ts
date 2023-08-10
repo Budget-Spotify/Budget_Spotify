@@ -34,20 +34,28 @@ class UserController {
 
     static async deleteSong(req, res) {
         try {
-            const song = await Songs.findOne({ _id: req.body._id });
+            const song = await Songs.findOne({_id: req.body._id});
+            const userId = req.user.id;
             if (!song) {
                 const data = {
                     status: "failed",
                     message: 'Song does not exist!',
                 }
                 return res.status(404).json(data);
-            } else {
-                await Songs.deleteOne({ _id: song._id });
-                res.status(200).json({
-                    status: "succeeded",
-                    message: 'The song has been deleted!'
-                })
             }
+            const uploaderId = song.uploader.toString();
+            if (userId !== uploaderId) {
+                const data = {
+                    status: "failed",
+                    message: 'This song does not belong to you!',
+                }
+                return res.status(403).json(data);
+            }
+            await Songs.deleteOne({_id: song._id});
+            return res.status(200).json({
+                status: "succeeded",
+                message: 'The song has been deleted!'
+            })
         } catch (err) {
             res.status(404).json({ status: "failed", message: err.message });
         }
@@ -55,16 +63,18 @@ class UserController {
 
     static async getSongs(req, res) {
         try {
-            let songs = await Songs.find().sort({ uploadTime: -1 });
+            const userId = req.user.id;
+            let songs = await Songs.find({uploader: userId}).sort({uploadTime: -1});
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',
                     songs: songs,
                 });
             } else {
-                res.status(404).json({
-                    status: 'failed',
-                    message: 'No data'
+                res.status(200).json({
+                    status: 'succeeded',
+                    songs: [],
+                    message: 'No data',
                 });
             }
         } catch (err) {
@@ -188,11 +198,19 @@ class UserController {
                 await user.save()
                 res.status(200).json({
                     status: 'succeeded',
+                    message:"add playlist succcess"
+                })
+            }else{
+                res.status(409).json({
+                    message:"The playlist has existed"
                 })
             }
         }catch(err){
             res.status(404).json({ status: "failed", message: err.message });
         }
+    }
+    static async addSongToPlaylist(req,res){
+        
     }
 }
 

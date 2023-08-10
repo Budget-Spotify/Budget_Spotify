@@ -182,32 +182,24 @@ class UserController {
     static async createPlaylist(req, res) {
         try {
             let user = await Users.findOne({ _id: req.user.id })
-            let playlist = await Playlists.findOne({ playlistName: req.body.playlistName })
-            if (!playlist) {
-                const date = new Date();
-                const day = date.getDate();
-                const month = date.getMonth() + 1;
-                const year = date.getFullYear();
-                const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
-                let newPlayList = new Playlists({
-                    userID: req.user.id,
-                    playlistName: req.body.playlistName,
-                    avatar: req.body.avatar,
-                    uploadTime: formattedDate,
-                    description: req.body.description,
-                })
-                await newPlayList.save()
-                user.playlist.push(newPlayList._id)
-                await user.save()
-                res.status(200).json({
-                    status: 'succeeded',
-                    message: "add playlist succcess"
-                })
-            } else {
-                res.status(409).json({
-                    message: "The playlist has existed"
-                })
-            }
+            const date = new Date();
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+            let newPlayList = new Playlists({
+                playlistName: req.body.playlistName,
+                avatar: req.body.avatar,
+                uploadTime: formattedDate,
+                description: req.body.description,
+            })
+            await newPlayList.save()
+            user.playlist.push(newPlayList._id)
+            await user.save()
+            res.status(200).json({
+                status: 'succeeded',
+                message: "add playlist succcess"
+            })
         } catch (err) {
             res.status(404).json({ status: "failed", message: err.message });
         }

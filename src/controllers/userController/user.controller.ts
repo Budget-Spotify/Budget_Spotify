@@ -213,8 +213,37 @@ class UserController {
             const playlist = userWithPlaylist.playlist;
             res.status(200).json({ data: playlist });
         } catch (error) {
-            console.error(error);
             res.status(404).json({ message: "This user dont have any playlist" });
+        }
+    }
+    static async deletePlaylist(req, res) {
+        try {
+            const playlist = await Playlists.findOne({ _id: req.body.id })
+            const user = await Users.findOne({ _id: req.user.id })
+            if (!playlist) {
+                const data = {
+                    status: "failed",
+                    message: 'Playlist does not exist!',
+                }
+                return res.status(404).json(data);
+            }
+            if (user) {
+                await Playlists.deleteOne({ _id: playlist._id })
+                user.playlist = user.playlist.filter(e => e !== playlist._id)
+                await user.save()
+                res.status(200).json({
+                    status: "success",
+                    message: "delete success"
+                })
+            } else {
+
+                res.status(401).json({
+                    status: "failed",
+                    messae: "you have not permission to delete"
+                })
+            }
+        }catch(err){
+            res.status(404).json({ status: "failed", message: err.message });
         }
     }
 }

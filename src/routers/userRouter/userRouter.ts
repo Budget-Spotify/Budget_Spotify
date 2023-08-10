@@ -16,4 +16,5 @@ userRouter.put('/editpassword', userController.editPassword);
 userRouter.put('/editinfo', userController.editInfo);
 userRouter.delete('/song/delete', userController.deleteSong);
 userRouter.post('/playlist/create',userController.createPlaylist)
+userRouter.delete('/playlist/delete',userController.deletePlaylist)
 export default userRouter;

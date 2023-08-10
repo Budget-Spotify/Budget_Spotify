@@ -1,7 +1,7 @@
 import {Songs} from "../../models/schemas/Songs";
 import {Users} from "../../models/schemas/Users";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import {Playlists} from "../../models/schemas/Playlists";
 
 class UserController {
     static async addSong(req, res) {
@@ -178,6 +178,20 @@ class UserController {
             }
         } catch (err) {
             res.status(404).json({status: "failed", message: err.message});
+        }
+    }
+
+    static async getPlayList(req: any, res: any) {
+        try {
+            const userId = req.user.id;
+            const userWithPlaylist = await Users.findById(userId)
+                .populate({path: 'playlist', model: Playlists});
+            const playlist = userWithPlaylist.playlist;
+            res.status(200).json({data: playlist});
+            console.log(playlist)
+        } catch (error) {
+            console.error(error);
+            res.status(404).json({message: "This user dont have any playlist"});
         }
     }
 }

@@ -32,7 +32,7 @@ export class Security {
                 req.user = jwt.verify(accessToken, Security.jwtSecretKey);
                 next();
             } catch (e) {
-                res.status(403).json("You are not admin");
+                res.status(401).json("Token Invalid");
             }
         } else {
             res.status(401).json("You are not authenticated");

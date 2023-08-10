@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import adminApiRouter from "./src/routers/adminRouter/admin.router";
 import authRouter from "./src/routers/authRouter/authRouter";
 import userRouter from "./src/routers/userRouter/userRouter";
+import songRouter from "./src/routers/songRouter/songRouter";
 
 const app = express();
 const PORT = 8000
@@ -19,6 +20,7 @@ DatabaseConnect
 app.use('/admin', adminApiRouter)
 app.use('/auth', authRouter);
 app.use('/user', userRouter);
+app.use('/song', songRouter);
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);

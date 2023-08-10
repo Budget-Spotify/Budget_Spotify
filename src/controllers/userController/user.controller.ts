@@ -209,9 +209,6 @@ class UserController {
             res.status(404).json({ status: "failed", message: err.message });
         }
     }
-    static async addSongToPlaylist(req,res){
-        
-    }
 }
 
 export default UserController

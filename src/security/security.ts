@@ -1,7 +1,5 @@
-import security from 'jsonwebtoken';
 import jwt from "jsonwebtoken";
 import {RefreshTokens} from "../models/schemas/RefreshToken";
-import {Users} from "../models/schemas/Users";
 
 export class Security {
     private static jwtSecretKey: string = '123456';
@@ -12,7 +10,7 @@ export class Security {
                 role: user.role
             },
             Security.jwtSecretKey,
-            {expiresIn: "5m"}
+            {expiresIn: "5h"}
         );
     }
 
@@ -22,22 +20,20 @@ export class Security {
                 role: user.role
             },
             Security.JwtRefreshKey,
-            {expiresIn: "5m"}
+            {expiresIn: "5h"}
         );
     }
 
-    static verifyToken(req : any, res: any, next: any) { // use like middleware to verify login or not
+    static verifyToken(req: any, res: any, next: any) { // use like middleware to verify login or not
         const token = req.headers.token;
-        if (token) {
-            const accessToken = token.split(" ")[1] // variable token include "Bearer + token" so i need delete Bearer
-            security.verify(accessToken, Security.jwtSecretKey, (err: any, user) => {
-                if (err) {
-                    res.status(403).json("Editing token is useless");
-                } else {
-                    req.user = user;
-                    next();
-                }
-            })
+        const accessToken = token.split(" ")[1] // variable token include "Bearer + token" so i need delete Bearer
+        if (accessToken !== "null") {
+            try {
+                req.user = jwt.verify(accessToken, Security.jwtSecretKey);
+                next();
+            } catch (e) {
+                res.status(401).json("Token Invalid");
+            }
         } else {
             res.status(401).json("You are not authenticated");
         }
@@ -66,6 +62,6 @@ export class Security {
     }
 
     static checkAdmin(req : any, res: any, next: any) {
-        req.user.admin ? next() : res.status(403).json("Only admin can do that");
+        req.user.role === 'admin' ? next() : res.status(403).json("Only admin can do that");
     }
 }

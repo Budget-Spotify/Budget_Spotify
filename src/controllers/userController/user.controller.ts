@@ -1,7 +1,7 @@
 import { Songs } from "../../models/schemas/Songs";
 import { Users } from "../../models/schemas/Users";
+import { Playlists } from "../../models/schemas/Playlists";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 class UserController {
     static async addSong(req, res) {
         try {
@@ -30,24 +30,56 @@ class UserController {
         }
     }
 
+    static async deleteSong(req, res) {
+        try {
+            const song = await Songs.findOne({ _id: req.body._id });
+            const userId = req.user.id;
+            if (!song) {
+                const data = {
+                    status: "failed",
+                    message: 'Song does not exist!',
+                }
+                return res.status(404).json(data);
+            }
+            const uploaderId = song.uploader.toString();
+            if (userId !== uploaderId) {
+                const data = {
+                    status: "failed",
+                    message: 'This song does not belong to you!',
+                }
+                return res.status(403).json(data);
+            }
+            await Songs.deleteOne({ _id: song._id });
+            return res.status(200).json({
+                status: "succeeded",
+                message: 'The song has been deleted!'
+            })
+        } catch (err) {
+            res.status(404).json({ status: "failed", message: err.message });
+        }
+    }
+
     static async getSongs(req, res) {
         try {
-            let songs = await Songs.find().sort({uploadTime: -1});
+            const userId = req.user.id;
+            let songs = await Songs.find({ uploader: userId }).sort({ uploadTime: -1 });
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',
                     songs: songs,
                 });
             } else {
-                res.status(404).json({
-                    status: 'failed',
-                    message: 'No data'
+                res.status(200).json({
+                    status: 'succeeded',
+                    songs: [],
+                    message: 'No data',
                 });
             }
         } catch (err) {
             res.status(404).json({ status: "failed", message: err.message });
         }
     }
+
     static async getDetail(req, res) {
         try {
             let user = await Users.findOne({ _id: req.body.id })
@@ -66,12 +98,13 @@ class UserController {
             res.status(404).json({ status: "failed", message: err.message });
         }
     }
+
     static async editPassword(req, res) {
         try {
             const user = await Users.findOne({ _id: req.body.id });
             const { oldpassword, newpassword, newpasswordconfirm } = req.body;
             if (!user) {
-                const data={
+                const data = {
                     status: "failed",
                     message: 'User does not exist!'
                 }
@@ -79,18 +112,18 @@ class UserController {
             }
             const isPasswordValid = await bcrypt.compare(oldpassword, user.password);
             if (!isPasswordValid) {
-                const data={
+                const data = {
                     status: "failed",
                     message: 'Incorrect password!'
                 }
                 return res.json(data);
             }
             if (newpassword !== newpasswordconfirm) {
-                const data={
+                const data = {
                     status: "failed",
                     message: "Incorrect password confirm!"
                 }
-               return res.json(data)
+                return res.json(data)
             }
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(newpassword, saltRounds);
@@ -104,6 +137,7 @@ class UserController {
             res.status(404).json({ status: "failed", message: err.message });
         }
     }
+
     static async editInfo(req, res) {
         const user = await Users.findOne({ _id: req.body.id });
         const { firstName, lastName, phoneNumber, gender, avatar } = req.body;
@@ -129,7 +163,7 @@ class UserController {
     static async getOneSong(req, res) {
         try {
             let songId = req.params.id;
-            let song = await Songs.findOne({_id: songId});
+            let song = await Songs.findOne({ _id: songId });
             if (song) {
                 res.status(200).json({
                     status: 'succeeded',
@@ -142,8 +176,55 @@ class UserController {
                 });
             }
         } catch (err) {
-            res.status(404).json({status: "failed", message: err.message});
+            res.status(404).json({ status: "failed", message: err.message });
+        }
+    }
+    static async createPlaylist(req, res) {
+        try {
+            let user = await Users.findOne({ _id: req.user.id })
+            let playlist = await Playlists.findOne({ playlistName: req.body.playlistName })
+            if (!playlist) {
+                const date = new Date();
+                const day = date.getDate();
+                const month = date.getMonth() + 1;
+                const year = date.getFullYear();
+                const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+                let newPlayList = new Playlists({
+                    userID: req.user.id,
+                    playlistName: req.body.playlistName,
+                    avatar: req.body.avatar,
+                    uploadTime: formattedDate,
+                    description: req.body.description,
+                })
+                await newPlayList.save()
+                user.playlist.push(newPlayList._id)
+                await user.save()
+                res.status(200).json({
+                    status: 'succeeded',
+                    message: "add playlist succcess"
+                })
+            } else {
+                res.status(409).json({
+                    message: "The playlist has existed"
+                })
+            }
+        } catch (err) {
+            res.status(404).json({ status: "failed", message: err.message });
+        }
+    }
+
+    static async getPlayList(req: any, res: any) {
+        try {
+            const userId = req.user.id;
+            const userWithPlaylist = await Users.findById(userId)
+                .populate({ path: 'playlist', model: Playlists });
+            const playlist = userWithPlaylist.playlist;
+            res.status(200).json({ data: playlist });
+        } catch (error) {
+            console.error(error);
+            res.status(404).json({ message: "This user dont have any playlist" });
         }
     }
 }
+
 export default UserController

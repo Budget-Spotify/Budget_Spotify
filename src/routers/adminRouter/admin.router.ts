@@ -1,7 +1,10 @@
 import express from "express";
 import UsersManagerController from "../../controllers/admincontroller/userManager.controller";
+import {Security} from "../../security/security";
 const adminApiRouter = express.Router()
 
-adminApiRouter.get('/userlist', UsersManagerController.getUserList)
+adminApiRouter.use(Security.verifyToken, Security.checkAdmin);
+adminApiRouter.get('/userlist', UsersManagerController.getUserList);
+
 
 export default adminApiRouter

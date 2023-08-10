@@ -236,6 +236,23 @@ class UserController {
             res.status(404).json({message: "Can not find playlist"});
         }
     }
+
+    static async searchSong(req: any, res: any) {
+        try {
+            const songName = req.query.songName;
+            if(songName){
+                const foundSongs = await Songs.find({
+                    songName: { $regex: new RegExp(songName, 'i') }
+                });
+
+                res.status(200).json(foundSongs);
+            } else {
+                res.status(200).json('');
+            }
+        } catch (e) {
+            res.status(404).json({message: e})
+        }
+    }
 }
 
 export default UserController

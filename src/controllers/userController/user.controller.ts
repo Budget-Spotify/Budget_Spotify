@@ -228,6 +228,83 @@ class UserController {
         }
     }
 
+    static async getSongInPlaylist(req: any, res: any) {
+        try {
+            const playlistId = req.params["playlistId"];
+            const playlist = await Playlists.findById(playlistId)
+                .populate({path: 'songs', model: Songs});
+            res.status(200).json({playlist: playlist});
+        } catch (e) {
+            res.status(404).json({message: "Can not find playlist"});
+        }
+    }
+
+    static async searchSong(req: any, res: any) {
+        try {
+            const songName = req.query.songName;
+            if (songName) {
+                const foundSongs = await Songs.find({
+                    songName: {$regex: new RegExp(songName, 'i')}
+                });
+
+                res.status(200).json(foundSongs);
+            } else {
+                res.status(200).json('');
+            }
+        } catch (e) {
+            res.status(404).json({message: e})
+        }
+    }
+
+    static async addSongToPlaylist(req: any, res: any) {
+        try {
+            const songId = req.body['songId'];
+            const playlistId = req.params["playlistId"];
+
+            const playlist = await Playlists.findById(playlistId);
+
+            if (playlist) {
+                const songExists = playlist.songs.some(existingSongId => existingSongId.toString() === songId);
+
+                if (!songExists) {
+                    playlist.songs.push(songId);
+                    await playlist.save();
+                }
+            }
+
+            res.status(200).json({ message: "Song added to playlist successfully" });
+        } catch (e) {
+            res.status(500).json({ message: "Error adding song to playlist" });
+        }
+    }
+
+    static async removeSongFromPlaylist(req: any, res: any) {
+        try {
+            const songId = req.body['songId'];
+            const playlistId = req.params["playlistId"];
+
+            const playlist = await Playlists.findById(playlistId);
+
+            if (playlist) {
+                const updatedSongs = playlist.songs.filter(existingSongId => existingSongId.toString() !== songId);
+
+                if (updatedSongs.length !== playlist.songs.length) {
+                    playlist.songs = updatedSongs;
+                    await playlist.save();
+                    res.status(200).json({ message: "Song removed from playlist successfully" });
+                } else {
+                    res.status(404).json({ message: "Song not found in playlist" });
+                }
+            } else {
+                res.status(404).json({ message: "Playlist not found" });
+            }
+        } catch (e) {
+            res.status(500).json({ message: "Error removing song from playlist" });
+        }
+    }
+
+
+
     static async updateSongState(req, res) {
         try {
             const {songId, isPublic} = req.body;

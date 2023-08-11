@@ -182,33 +182,25 @@ class UserController {
 
     static async createPlaylist(req: any, res: any) {
         try {
-            let user = await Users.findOne({_id: req.user.id})
-            let playlist = await Playlists.findOne({playlistName: req.body.playlistName})
-            if (!playlist) {
-                const date = new Date();
-                const day = date.getDate();
-                const month = date.getMonth() + 1;
-                const year = date.getFullYear();
-                const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
-                let newPlayList = new Playlists({
-                    userID: req.user.id,
-                    playlistName: req.body.playlistName,
-                    avatar: req.body.avatar,
-                    uploadTime: formattedDate,
-                    description: req.body.description,
-                })
-                await newPlayList.save()
-                user.playlist.push(newPlayList._id)
-                await user.save()
-                res.status(200).json({
-                    status: 'succeeded',
-                    message: "add playlist succcess"
-                })
-            } else {
-                res.status(409).json({
-                    message: "The playlist has existed"
-                })
-            }
+            let user = await Users.findOne({ _id: req.user.id })
+            const date = new Date();
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+            let newPlayList = new Playlists({
+                playlistName: req.body.playlistName,
+                avatar: req.body.avatar,
+                uploadTime: formattedDate,
+                description: req.body.description,
+            })
+            await newPlayList.save()
+            user.playlist.push(newPlayList._id)
+            await user.save()
+            res.status(200).json({
+                status: 'succeeded',
+                message: "add playlist succcess"
+            })
         } catch (err) {
             res.status(404).json({status: "failed", message: err.message});
         }
@@ -300,8 +292,65 @@ class UserController {
             res.status(500).json({ message: "Error removing song from playlist" });
         }
     }
+    static async deletePlaylist(req, res) {
+        try {
+            const playlist = await Playlists.findOne({ _id: req.body._id })
+            const user = await Users.findOne({ _id: req.user.id })
+            if (!playlist) {
+                const data = {
+                    status: "failed",
+                    message: 'Playlist does not exist!',
+                }
+                return res.status(404).json(data);
+            }
+            if (user) {
+                await Playlists.deleteOne({ _id: playlist._id })
+                user.playlist = user.playlist.filter(e => e !== playlist._id)
+                await user.save()
+                res.status(200).json({
+                    status: "success",
+                    message: "delete success"
+                })
+            } else {
 
-
+                res.status(401).json({
+                    status: "failed",
+                    messae: "you have not permission to delete"
+                })
+            }
+        } catch (err) {
+            res.status(401).json({ status: "failed", message: err.message });
+        }
+    }
+    static async editPlayList(req, res) {
+        try {
+            const playlist = await Playlists.findOne({ _id: req.body._id })
+            const date = new Date();
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+            if (!playlist) {
+                const data = {
+                    status: "failed",
+                    message: 'Playlist does not exist!',
+                }
+                return res.status(404).json(data);
+            } else {
+                playlist.playlistName = req.body.playlistName
+                playlist.description = req.body.description
+                playlist.avatar = req.body.avatar
+                playlist.uploadTime = formattedDate
+                await playlist.save()
+                res.status(200).json({
+                    status: "success",
+                    message: "edit success"
+                })
+            }
+        } catch (err) {
+            res.status(401).json({ status: "failed", message: err.message });
+        }
+    }
 }
 
 export default UserController

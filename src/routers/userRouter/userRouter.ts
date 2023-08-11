@@ -1,6 +1,6 @@
 import express from "express";
 import userController from "../../controllers/userController/user.controller";
-import { Security } from "../../security/security";
+import {Security} from "../../security/security";
 
 
 const userRouter = express.Router();
@@ -15,5 +15,6 @@ userRouter.get('/playlist', userController.getPlayList);
 userRouter.put('/editpassword', userController.editPassword);
 userRouter.put('/editinfo', userController.editInfo);
 userRouter.delete('/song/delete', userController.deleteSong);
-userRouter.post('/playlist/create',userController.createPlaylist)
+userRouter.post('/playlist/create', userController.createPlaylist)
+userRouter.put('/song/update-state', userController.updateSongState);
 export default userRouter;

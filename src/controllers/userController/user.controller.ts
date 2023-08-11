@@ -4,7 +4,7 @@ import {Playlists} from "../../models/schemas/Playlists";
 import bcrypt from "bcrypt";
 
 class UserController {
-    static async addSong(req: any, res: any) {
+    static async addSong(req, res) {
         try {
             let {
                 songName,
@@ -31,7 +31,7 @@ class UserController {
         }
     }
 
-    static async deleteSong(req: any, res: any) {
+    static async deleteSong(req, res) {
         try {
             const song = await Songs.findOne({_id: req.body._id});
             const userId = req.user.id;
@@ -60,7 +60,7 @@ class UserController {
         }
     }
 
-    static async getSongs(req: any, res: any) {
+    static async getSongs(req, res) {
         try {
             const userId = req.user.id;
             let songs = await Songs.find({uploader: userId}).sort({uploadTime: -1});
@@ -81,7 +81,7 @@ class UserController {
         }
     }
 
-    static async getDetail(req: any, res: any) {
+    static async getDetail(req, res) {
         try {
             let user = await Users.findOne({_id: req.body.id})
             if (!user) {
@@ -100,7 +100,7 @@ class UserController {
         }
     }
 
-    static async editPassword(req: any, res: any) {
+    static async editPassword(req, res) {
         try {
             const user = await Users.findOne({_id: req.body.id});
             const {oldpassword, newpassword, newpasswordconfirm} = req.body;
@@ -127,7 +127,8 @@ class UserController {
                 return res.json(data)
             }
             const saltRounds = 10;
-            user.password = await bcrypt.hash(newpassword, saltRounds)
+            const hashedPassword = await bcrypt.hash(newpassword, saltRounds);
+            user.password = hashedPassword
             await user.save()
             res.status(200).json({
                 status: "succeeded",
@@ -138,7 +139,7 @@ class UserController {
         }
     }
 
-    static async editInfo(req: any, res: any) {
+    static async editInfo(req, res) {
         const user = await Users.findOne({_id: req.body.id});
         const {firstName, lastName, phoneNumber, gender, avatar} = req.body;
         if (!user) {
@@ -160,7 +161,7 @@ class UserController {
         }
     }
 
-    static async getOneSong(req: any, res: any) {
+    static async getOneSong(req, res) {
         try {
             let songId = req.params.id;
             let song = await Songs.findOne({_id: songId});
@@ -180,9 +181,9 @@ class UserController {
         }
     }
 
-    static async createPlaylist(req: any, res: any) {
+    static async createPlaylist(req, res) {
         try {
-            let user = await Users.findOne({ _id: req.user.id })
+            let user = await Users.findOne({_id: req.user.id})
             const date = new Date();
             const day = date.getDate();
             const month = date.getMonth() + 1;
@@ -262,9 +263,9 @@ class UserController {
                 }
             }
 
-            res.status(200).json({ message: "Song added to playlist successfully" });
+            res.status(200).json({message: "Song added to playlist successfully"});
         } catch (e) {
-            res.status(500).json({ message: "Error adding song to playlist" });
+            res.status(500).json({message: "Error adding song to playlist"});
         }
     }
 
@@ -281,21 +282,22 @@ class UserController {
                 if (updatedSongs.length !== playlist.songs.length) {
                     playlist.songs = updatedSongs;
                     await playlist.save();
-                    res.status(200).json({ message: "Song removed from playlist successfully" });
+                    res.status(200).json({message: "Song removed from playlist successfully"});
                 } else {
-                    res.status(404).json({ message: "Song not found in playlist" });
+                    res.status(404).json({message: "Song not found in playlist"});
                 }
             } else {
-                res.status(404).json({ message: "Playlist not found" });
+                res.status(404).json({message: "Playlist not found"});
             }
         } catch (e) {
-            res.status(500).json({ message: "Error removing song from playlist" });
+            res.status(500).json({message: "Error removing song from playlist"});
         }
     }
+
     static async deletePlaylist(req, res) {
         try {
-            const playlist = await Playlists.findOne({ _id: req.body._id })
-            const user = await Users.findOne({ _id: req.user.id })
+            const playlist = await Playlists.findOne({_id: req.body._id})
+            const user = await Users.findOne({_id: req.user.id})
             if (!playlist) {
                 const data = {
                     status: "failed",
@@ -304,7 +306,7 @@ class UserController {
                 return res.status(404).json(data);
             }
             if (user) {
-                await Playlists.deleteOne({ _id: playlist._id })
+                await Playlists.deleteOne({_id: playlist._id})
                 user.playlist = user.playlist.filter(e => e !== playlist._id)
                 await user.save()
                 res.status(200).json({
@@ -319,12 +321,13 @@ class UserController {
                 })
             }
         } catch (err) {
-            res.status(401).json({ status: "failed", message: err.message });
+            res.status(401).json({status: "failed", message: err.message});
         }
     }
+
     static async editPlayList(req, res) {
         try {
-            const playlist = await Playlists.findOne({ _id: req.body._id })
+            const playlist = await Playlists.findOne({_id: req.body._id})
             const date = new Date();
             const day = date.getDate();
             const month = date.getMonth() + 1;
@@ -348,7 +351,32 @@ class UserController {
                 })
             }
         } catch (err) {
-            res.status(401).json({ status: "failed", message: err.message });
+            res.status(401).json({status: "failed", message: err.message});
+        }
+    }
+
+    static async updateSongState(req, res) {
+        try {
+            const {songId, isPublic} = req.body;
+            const song = await Songs.findOne({_id: songId});
+            if (!song) {
+                return res.status(404).json({
+                    status: 'failed',
+                    message: 'Song not found'
+                });
+            }
+            song.isPublic = (isPublic == 1);
+            await song.save();
+            return res.status(200).json({
+                status: 'succeeded',
+                message: 'Song state updated successfully',
+                song: song,
+            });
+        } catch (err) {
+            res.status(500).json({
+                status: 'failed',
+                message: err.message
+            });
         }
     }
 }

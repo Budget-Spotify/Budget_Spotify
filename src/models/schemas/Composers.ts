@@ -1,10 +1,10 @@
 import {Schema, model} from "mongoose";
 
 interface IComposers {
-    singerName: string
+    composerName: string
 }
 
 const composerSchema = new Schema<IComposers>({
-    singerName: String
+    composerName: String
 });
 export const Composers = model<IComposers>('Composers', composerSchema, 'composers');

@@ -38,8 +38,15 @@ export class Security {
             });
             req.authMethod = "google";
             req.body = ticket.getPayload();
+            req.body = {
+                ...req.body,
+                username: req.body.email,
+                firstname: req.body.given_name,
+                lastname: req.body.family_name,
+                avatar: req.body.picture,
+                password: null,
+            };
             await AuthController.register(req, res);
-            req.body = {username: req.body.email, password: null};
             await AuthController.login(req, res);
         } catch (e) {
             res.status(401).json('Google token verification failed', e.message);

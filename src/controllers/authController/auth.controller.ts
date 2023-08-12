@@ -7,16 +7,9 @@ import {Security} from "../../security/security";
 export class AuthController {
     static async register(req: any, res: any) {
         const {firstName, lastName, username, password, phoneNumber, gender, avatar} = req.body;
-        const {given_name, family_name, email, picture} = req.body;
 
         try {
-            let existingUser = null;
-
-            if (email) {
-                existingUser = await Users.findOne({username: email});
-            } else {
-                existingUser = await Users.findOne({username});
-            }
+            const existingUser = await Users.findOne({username});
 
             if (existingUser) {
                 return;
@@ -28,12 +21,12 @@ export class AuthController {
             }
 
             await Users.create({
-                firstName: firstName || given_name,
-                lastName: lastName || family_name,
-                username: username || email,
+                firstName,
+                lastName,
+                username,
                 phoneNumber,
                 gender,
-                avatar: avatar || picture,
+                avatar,
                 password: hashedPassword,
                 role: 'user'
             });

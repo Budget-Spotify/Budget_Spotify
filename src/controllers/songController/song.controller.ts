@@ -19,4 +19,21 @@ export class SongController {
             res.status(404).json({status: "failed", message: err.message});
         }
     }
+    static async getRandomSong(req,res){
+        try{
+            let randomSong = await Songs.aggregate([
+                { $match: { isPublic: true } },
+                { $sample: { size: 1 } }
+              ]);
+            res.status(200).json({
+                status: 'succeeded',
+                data: randomSong[0]
+            })
+        } catch (err){
+            res.status(404).json({
+                status: 'failed',
+                message: err.message
+            });
+        }
+    }
 }

@@ -7,54 +7,45 @@ import {Security} from "../../security/security";
 export class AuthController {
     static async register(req: any, res: any) {
         const {firstName, lastName, username, password, phoneNumber, gender, avatar} = req.body;
+        const {given_name, family_name, email, picture} = req.body;
 
         try {
-            const existingUser = await Users.findOne({username});
-            if (existingUser) {
-                return res.status(400).json({message: 'User already exists!'});
+            let existingUser = null;
+
+            if (email) {
+                existingUser = await Users.findOne({username: email});
+            } else {
+                existingUser = await Users.findOne({username});
             }
 
-            const hashedPassword = await bcrypt.hash(password, 10);
-            await Users.create({
-                firstName,
-                lastName,
-                username,
-                phoneNumber,
-                gender,
-                avatar,
-                password: hashedPassword,
-                role: 'user'
-            });
-
-            res.status(201).json({message: 'Sign up success!'});
-        } catch (error) {
-            res.status(500).json({message: 'Server error!'});
-        }
-    }
-
-    static async googleRegister(req: any, res: any) {
-        const {given_name, family_name, email, picture} = req.user;
-
-        try {
-            const existingUser = await Users.findOne({username: email});
             if (existingUser) {
                 return;
             }
 
+            let hashedPassword = password;
+            if (password) {
+                hashedPassword = await bcrypt.hash(password, 10);
+            }
+
             await Users.create({
-                firstName: given_name,
-                lastName: family_name,
-                username: email,
-                phoneNumber: null,
-                gender: null,
-                avatar: picture,
-                password: null,
+                firstName: firstName || given_name,
+                lastName: lastName || family_name,
+                username: username || email,
+                phoneNumber,
+                gender,
+                avatar: avatar || picture,
+                password: hashedPassword,
                 role: 'user'
             });
+
+            if (req.authMethod === "jwt") {
+                res.status(201).json({message: 'Sign up success!'});
+            }
         } catch (e) {
             res.status(500).json({message: 'Server error!'}, e.message);
         }
     }
+
 
     static async login(req: any, res: any) {
         const {username, password} = req.body;
@@ -64,7 +55,7 @@ export class AuthController {
                 return res.status(404).json({message: 'Username does not exist!'});
             }
 
-            if (req.authMethod !== 'google'){
+            if (req.authMethod !== 'google') {
                 const isPasswordValid = await bcrypt.compare(password, user.password);
                 if (!isPasswordValid) {
                     return res.status(401).json({message: 'Incorrect password!'});
@@ -96,9 +87,8 @@ export class AuthController {
                     songsUploaded: user.songsUploaded
                 }
             });
-        } catch (error) {
-            console.log(error)
-            res.status(500).json({message: 'Server error!'});
+        } catch (e) {
+            res.status(500).json({message: 'Server error!'}, e.message);
         }
     }
 

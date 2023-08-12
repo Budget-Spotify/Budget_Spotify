@@ -1,10 +1,10 @@
 import {Schema, model} from "mongoose";
 
 interface ITags {
-    tagName: string
+    name: string
 }
 
 const tagSchema = new Schema<ITags>({
-    tagName: String
+    name: String
 });
 export const Tags = model<ITags>('Tags', tagSchema, 'tags');

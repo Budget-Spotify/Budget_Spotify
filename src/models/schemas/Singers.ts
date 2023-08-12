@@ -1,10 +1,10 @@
 import {Schema, model} from "mongoose";
 
 interface ISingers {
-    singerName: string
+    name: string
 }
 
 const singerSchema = new Schema<ISingers>({
-    singerName: String
+    name: String
 });
 export const Singers = model<ISingers>('Singers', singerSchema, 'singers');

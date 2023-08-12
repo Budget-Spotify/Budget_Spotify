@@ -15,7 +15,7 @@ export class AuthController {
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
-            const newUser = new Users({
+            await Users.create({
                 firstName,
                 lastName,
                 username,
@@ -25,11 +25,34 @@ export class AuthController {
                 password: hashedPassword,
                 role: 'user'
             });
-            await newUser.save();
 
             res.status(201).json({message: 'Sign up success!'});
         } catch (error) {
             res.status(500).json({message: 'Server error!'});
+        }
+    }
+
+    static async googleRegister(req: any, res: any) {
+        const {given_name, family_name, email, picture} = req.user;
+
+        try {
+            const existingUser = await Users.findOne({username: email});
+            if (existingUser) {
+                return;
+            }
+
+            await Users.create({
+                firstName: given_name,
+                lastName: family_name,
+                username: email,
+                phoneNumber: null,
+                gender: null,
+                avatar: picture,
+                password: null,
+                role: 'user'
+            });
+        } catch (e) {
+            res.status(500).json({message: 'Server error!'}, e.message);
         }
     }
 
@@ -41,9 +64,11 @@ export class AuthController {
                 return res.status(404).json({message: 'Username does not exist!'});
             }
 
-            const isPasswordValid = await bcrypt.compare(password, user.password);
-            if (!isPasswordValid) {
-                return res.status(401).json({message: 'Incorrect password!'});
+            if (req.authMethod !== 'google'){
+                const isPasswordValid = await bcrypt.compare(password, user.password);
+                if (!isPasswordValid) {
+                    return res.status(401).json({message: 'Incorrect password!'});
+                }
             }
 
             const accessToken = Security.accessToken(user);
@@ -72,6 +97,7 @@ export class AuthController {
                 }
             });
         } catch (error) {
+            console.log(error)
             res.status(500).json({message: 'Server error!'});
         }
     }

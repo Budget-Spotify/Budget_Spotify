@@ -1,10 +1,13 @@
 import jwt from "jsonwebtoken";
 import {RefreshTokens} from "../models/schemas/RefreshToken";
+import {OAuth2Client} from 'google-auth-library';
+import {AuthController} from "../controllers/authController/auth.controller";
 
 export class Security {
     private static jwtSecretKey: string = '123456';
     private static JwtRefreshKey: string = '123456';
-    static accessToken(user) {
+
+    static accessToken(user: any) {
         return jwt.sign({
                 id: user._id,
                 role: user.role
@@ -14,7 +17,7 @@ export class Security {
         );
     }
 
-    static refreshToken(user) {
+    static refreshToken(user: any   ) {
         return jwt.sign({
                 id: user._id,
                 role: user.role
@@ -24,18 +27,45 @@ export class Security {
         );
     }
 
-    static verifyToken(req: any, res: any, next: any) { // use like middleware to verify login or not
+    static async googleLogin(req: any, res: any, next: any) {
+        const idToken = req.body.token;
+        const clientId = "683585484602-h399cig7631kcaq65kpn1a3nva3mco5m.apps.googleusercontent.com";
+        try {
+            const client = new OAuth2Client(clientId);
+            const ticket = await client.verifyIdToken({
+                idToken,
+                audience: clientId
+            });
+            req.authMethod = "google";
+            req.body = ticket.getPayload();
+            req.body = {
+                ...req.body,
+                username: req.body.email,
+                firstname: req.body.given_name,
+                lastname: req.body.family_name,
+                avatar: req.body.picture,
+                password: null,
+            };
+            await AuthController.register(req, res);
+            await AuthController.login(req, res);
+        } catch (e) {
+            res.status(401).json('Google token verification failed', e.message);
+        }
+    }
+
+    static verifyToken(req: any, res: any, next: any) {
         const token = req.headers.token;
-        const accessToken = token.split(" ")[1] // variable token include "Bearer + token" so i need delete Bearer
-        if (accessToken !== "null") {
-            try {
-                req.user = jwt.verify(accessToken, Security.jwtSecretKey);
-                next();
-            } catch (e) {
-                res.status(401).json("Token Invalid");
-            }
-        } else {
-            res.status(401).json("You are not authenticated");
+        if (!token) {
+            return res.status(401).json("You are not authenticated");
+        }
+
+        const accessToken = token.split(" ")[1];
+        try {
+            req.user = jwt.verify(accessToken, Security.jwtSecretKey);
+            req.authMethod = "jwt";
+            next();
+        } catch (e) {
+            res.status(401).json("Token Invalid", e.message);
         }
     }
 
@@ -50,7 +80,7 @@ export class Security {
             return res.status(403).json("Refresh token is not valid");
         }
 
-        jwt.verify(refreshToken, Security.JwtRefreshKey, async (err: any, user) => {
+        jwt.verify(refreshToken, Security.JwtRefreshKey, async (err: any, user: any) => {
             if (err) {
                 console.log(err);
             }
@@ -61,7 +91,7 @@ export class Security {
         })
     }
 
-    static checkAdmin(req : any, res: any, next: any) {
+    static checkAdmin(req: any, res: any, next: any) {
         req.user.role === 'admin' ? next() : res.status(403).json("Only admin can do that");
     }
 }

@@ -10,12 +10,20 @@ export class AuthController {
 
         try {
             const existingUser = await Users.findOne({username});
+
             if (existingUser) {
-                return res.status(400).json({message: 'User already exists!'});
+                if (req.authMethod === "jwt"){
+                    return res.status(409).json("Account already exists");
+                }
+                return;
             }
 
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const newUser = new Users({
+            let hashedPassword = password;
+            if (password) {
+                hashedPassword = await bcrypt.hash(password, 10);
+            }
+
+            await Users.create({
                 firstName,
                 lastName,
                 username,
@@ -25,13 +33,15 @@ export class AuthController {
                 password: hashedPassword,
                 role: 'user'
             });
-            await newUser.save();
 
-            res.status(201).json({message: 'Sign up success!'});
-        } catch (error) {
-            res.status(500).json({message: 'Server error!'});
+            if (req.authMethod === "jwt") {
+                res.status(201).json({message: 'Sign up success!'});
+            }
+        } catch (e) {
+            res.status(500).json({message: 'Server error!'}, e.message);
         }
     }
+
 
     static async login(req: any, res: any) {
         const {username, password} = req.body;
@@ -41,9 +51,11 @@ export class AuthController {
                 return res.status(404).json({message: 'Username does not exist!'});
             }
 
-            const isPasswordValid = await bcrypt.compare(password, user.password);
-            if (!isPasswordValid) {
-                return res.status(401).json({message: 'Incorrect password!'});
+            if (req.authMethod !== 'google') {
+                const isPasswordValid = await bcrypt.compare(password, user.password);
+                if (!isPasswordValid) {
+                    return res.status(401).json({message: 'Incorrect password!'});
+                }
             }
 
             const accessToken = Security.accessToken(user);
@@ -71,8 +83,8 @@ export class AuthController {
                     songsUploaded: user.songsUploaded
                 }
             });
-        } catch (error) {
-            res.status(500).json({message: 'Server error!'});
+        } catch (e) {
+            res.status(500).json({message: 'Server error!'}, e.message);
         }
     }
 

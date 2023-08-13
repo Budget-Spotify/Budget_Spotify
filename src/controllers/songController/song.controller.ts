@@ -1,3 +1,6 @@
+import { Singers } from "../../models/schemas/Singers";
+import { Composers } from "../../models/schemas/Composers";
+import { Tags } from "../../models/schemas/Tags";
 import { Songs } from "../../models/schemas/Songs";
 
 export class SongController {
@@ -64,6 +67,48 @@ export class SongController {
                 status: 'failed',
                 message: err.message
             });
+        }
+    }
+    static async getSingers(req,res){
+        try{
+            let singers = await Singers.find({})
+            res.status(200).json({
+                status: 'succeeded',
+                data: singers
+            })
+        } catch(err){
+            res.status(404).json({
+                status: 'failed',
+                message: err.message
+            })
+        }
+    }
+    static async getComposers(req,res){
+        try{
+            let composers = await Composers.find({})
+            res.status(200).json({
+                status: 'succeeded',
+                data: composers
+            })
+        } catch(err){
+            res.status(404).json({
+                status: 'failed',
+                message: err.message
+            })
+        }
+    }
+    static async getTags(req,res){
+        try{
+            let tags = await Tags.find({})
+            res.status(200).json({
+                status: 'succeeded',
+                data: tags
+            })
+        } catch(err){
+            res.status(404).json({
+                status: 'failed',
+                message: err.message
+            })
         }
     }
 }

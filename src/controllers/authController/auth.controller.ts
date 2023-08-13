@@ -60,6 +60,7 @@ export class AuthController {
 
             const accessToken = Security.accessToken(user);
             const refreshToken = Security.refreshToken(user);
+            console.log(refreshToken)
 
             await RefreshTokens.create({
                 refreshToken: refreshToken,

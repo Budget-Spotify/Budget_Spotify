@@ -9,8 +9,8 @@ export class Security {
 
     static accessToken(user: any) {
         return jwt.sign({
-                id: user._id,
-                role: user.role
+                id: user._id || user.id,
+                role: user.role || user.id
             },
             Security.jwtSecretKey,
             {expiresIn: "10s"}
@@ -19,11 +19,11 @@ export class Security {
 
     static refreshToken(user: any   ) {
         return jwt.sign({
-                id: user._id,
-                role: user.role
+                id: user._id || user.id,
+                role: user.role || user.id
             },
             Security.JwtRefreshKey,
-            {expiresIn: "5m"}
+            {expiresIn: "50m"}
         );
     }
 
@@ -69,7 +69,7 @@ export class Security {
         }
     }
 
-    static async reqRefreshToken(req: any, res: any, next: any) { // use Redis and DB instead of refreshTokenList
+    static async reqRefreshToken(req: any, res: any, next: any) {
         const refreshToken = req.headers['refreshtoken'];
         if (!refreshToken) {
             return res.status(401).json("Token not found");
@@ -81,9 +81,13 @@ export class Security {
         }
 
         const user = jwt.verify(refreshToken, Security.JwtRefreshKey);
-        await RefreshTokens.deleteOne({token: refreshToken});
+        await RefreshTokens.deleteOne({refreshToken: refreshToken});
         const newAccessToken = Security.accessToken(user);
         const newRefreshToken = Security.refreshToken(user);
+        await RefreshTokens.create({
+            refreshToken: newRefreshToken,
+            user: user['id']
+        });
         res.status(201).json({accessToken: newAccessToken, refreshToken: newRefreshToken});
     }
 

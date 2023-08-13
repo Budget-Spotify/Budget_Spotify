@@ -12,7 +12,7 @@ export class AuthController {
             const existingUser = await Users.findOne({username});
 
             if (existingUser) {
-                if (req.authMethod === "jwt"){
+                if (req.authMethod === "jwt") {
                     return res.status(409).json("Account already exists");
                 }
                 return;
@@ -60,7 +60,6 @@ export class AuthController {
 
             const accessToken = Security.accessToken(user);
             const refreshToken = Security.refreshToken(user);
-            console.log(refreshToken)
 
             await RefreshTokens.create({
                 refreshToken: refreshToken,
@@ -93,7 +92,7 @@ export class AuthController {
         Security.reqRefreshToken(req, res, next)
             .then()
             .catch(e => {
-                console.log(e)
+                res.status(500).json({message: e.message})
             });
     }
 }

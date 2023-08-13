@@ -12,6 +12,9 @@ export class AuthController {
             const existingUser = await Users.findOne({username});
 
             if (existingUser) {
+                if (req.authMethod === "jwt"){
+                    return res.status(409).json("Account already exists");
+                }
                 return;
             }
 

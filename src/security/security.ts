@@ -9,21 +9,21 @@ export class Security {
 
     static accessToken(user: any) {
         return jwt.sign({
-                id: user._id,
-                role: user.role
+                id: user._id || user.id,
+                role: user.role || user.id
             },
             Security.jwtSecretKey,
-            {expiresIn: "5h"}
+            {expiresIn: "10s"}
         );
     }
 
     static refreshToken(user: any   ) {
         return jwt.sign({
-                id: user._id,
-                role: user.role
+                id: user._id || user.id,
+                role: user.role || user.id
             },
             Security.JwtRefreshKey,
-            {expiresIn: "5h"}
+            {expiresIn: "50m"}
         );
     }
 
@@ -46,10 +46,11 @@ export class Security {
                 avatar: req.body.picture,
                 password: null,
             };
+            console.log(req.body)
             await AuthController.register(req, res);
             await AuthController.login(req, res);
         } catch (e) {
-            res.status(401).json('Google token verification failed', e.message);
+            res.status(401).json('Google token verification failed');
         }
     }
 
@@ -65,30 +66,30 @@ export class Security {
             req.authMethod = "jwt";
             next();
         } catch (e) {
-            res.status(401).json("Token Invalid", e.message);
+            res.status(401).json("Token Invalid");
         }
     }
 
-    static async reqRefreshToken(req: any, res: any, next: any) { // use Redis and DB instead of refreshTokenList
-        const refreshToken = req.body.refreshToken;
+    static async reqRefreshToken(req: any, res: any, next: any) {
+        const refreshToken = req.headers['refreshtoken'];
         if (!refreshToken) {
-            return res.status(401).json("You are not authenticated");
+            return res.status(401).json("Token not found");
         }
 
         const existingRefreshToken = await RefreshTokens.findOne({refreshToken});
-        if (existingRefreshToken) {
-            return res.status(403).json("Refresh token is not valid");
+        if (!existingRefreshToken) {
+            return res.status(401).json("Refresh token is not valid");
         }
 
-        jwt.verify(refreshToken, Security.JwtRefreshKey, async (err: any, user: any) => {
-            if (err) {
-                console.log(err);
-            }
-            await RefreshTokens.deleteOne({token: refreshToken});
-            const newAccessToken = Security.accessToken(user);
-            const newRefreshToken = Security.refreshToken(user);
-            res.status(200).json({accessToken: newAccessToken, refreshToken: newRefreshToken});
-        })
+        const user = jwt.verify(refreshToken, Security.JwtRefreshKey);
+        await RefreshTokens.deleteOne({refreshToken: refreshToken});
+        const newAccessToken = Security.accessToken(user);
+        const newRefreshToken = Security.refreshToken(user);
+        await RefreshTokens.create({
+            refreshToken: newRefreshToken,
+            user: user['id']
+        });
+        res.status(201).json({accessToken: newAccessToken, refreshToken: newRefreshToken});
     }
 
     static checkAdmin(req: any, res: any, next: any) {

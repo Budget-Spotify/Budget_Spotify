@@ -21,4 +21,5 @@ userRouter.post('/playlist/create', userController.createPlaylist)
 userRouter.delete('/playlist/delete', userController.deletePlaylist)
 userRouter.put('/playlist/update', userController.editPlayList)
 userRouter.put('/song/update-state', userController.updateSongState);
+userRouter.put('/song/update', userController.editSong);
 export default userRouter;

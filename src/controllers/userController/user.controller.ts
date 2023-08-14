@@ -1,7 +1,11 @@
+import { model } from 'mongoose';
 import { Songs } from "../../models/schemas/Songs";
 import { Users } from "../../models/schemas/Users";
 import { Playlists } from "../../models/schemas/Playlists";
 import bcrypt from "bcrypt";
+import { Singers } from '../../models/schemas/Singers';
+import { Composers } from '../../models/schemas/Composers';
+import { Tags } from '../../models/schemas/Tags';
 
 class UserController {
     static async addSong(req, res) {
@@ -63,7 +67,13 @@ class UserController {
     static async getSongs(req, res) {
         try {
             const userId = req.user.id;
-            let songs = await Songs.find({ uploader: userId }).sort({ uploadTime: -1 });
+            let songs = await 
+            Songs.find({ uploader: userId })
+                .sort({ uploadTime: -1 })
+                .populate({path:'singers', model: Singers})
+                .populate({path:'composers', model: Composers})
+                .populate({path:'tags', model: Tags})
+                ;
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',

@@ -14,7 +14,7 @@ const PORT = 8000
 app.use(cors({origin: true, credentials: true}));
 app.use(bodyParser.json());
 
-app.get('/sse', sseRouter);
+app.use('/sse', sseRouter);
 
 DatabaseConnect
     .connectDB()

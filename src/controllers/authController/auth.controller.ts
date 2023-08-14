@@ -1,7 +1,6 @@
 import {Users} from "../../models/schemas/Users";
 import {RefreshTokens} from "../../models/schemas/RefreshToken";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import {Security} from "../../security/security";
 
 export class AuthController {
@@ -38,7 +37,7 @@ export class AuthController {
                 res.status(201).json({message: 'Sign up success!'});
             }
         } catch (e) {
-            res.status(500).json({message: 'Server error!'}, e.message);
+            res.status(500).json({message: 'Server error!'});
         }
     }
 
@@ -84,7 +83,7 @@ export class AuthController {
                 }
             });
         } catch (e) {
-            res.status(500).json({message: 'Server error!'}, e.message);
+            res.status(500).json({message: 'Server error!'});
         }
     }
 

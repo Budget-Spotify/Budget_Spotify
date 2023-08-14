@@ -33,7 +33,6 @@ export class SongController {
                 })
                     .populate({path: 'singers', model: Singers})
                     .sort({uploadTime: -1});
-                }).sort({ uploadTime: -1 });
                 const foundPlaylists = await Playlists.find({
                     playlistName: { $regex: new RegExp(songName, 'i') },
                 })
@@ -47,20 +46,6 @@ export class SongController {
                     singers: foundSingers
                 });
             } else {
-                let songs = await Songs.find({isPublic: true})
-                    .populate({path: 'singers', model: Singers})
-                    .sort({uploadTime: -1});
-                if (songs.length > 0) {
-                    res.status(200).json({
-                        status: 'succeeded',
-                        songs: songs,
-                    });
-                } else {
-                    res.status(404).json({
-                        status: 'failed',
-                        message: 'No data'
-                    });
-                }
                 let songs = await Songs.find({ isPublic: true }).sort({ uploadTime: -1 });
                 let playlists = await Playlists.find().sort({ uploadTime: -1 })
                 let singers = await Singers.find()

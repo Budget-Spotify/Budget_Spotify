@@ -1,6 +1,6 @@
 import express from 'express';
-import { Comments } from "../models/schemas/Comments";
-import {Songs} from "../models/schemas/Songs";
+import {Comments} from "../models/schemas/Comments";
+import {Users} from "../models/schemas/Users";
 
 const sseRouter = express.Router();
 
@@ -19,8 +19,10 @@ sseRouter.get('/events', (req, res) => {
         const commentId = eventData.documentKey._id;
         const comment = await Comments.findById(commentId);
         const songId = comment.song['_id'];
-        const relatedComments = await Comments.find({ song: songId });
-        res.write(`data: ${JSON.stringify({ eventData, relatedComments })}\n\n`);
+        const relatedComments = await Comments.find({song: songId})
+            .populate({path: 'user', model: Users});
+        console.log(relatedComments)
+        res.write(`data: ${JSON.stringify({eventData, relatedComments})}\n\n`);
     });
 
     req.on('close', () => {

@@ -16,9 +16,9 @@ sseRouter.get('/events', (req, res) => {
             documentKey: change.documentKey,
             updatedFields: change.updateDescription?.updatedFields || null
         };
-        const commentId = eventData.documentKey._id.toString();
+        const commentId = eventData.documentKey._id;
         const comment = await Comments.findById(commentId);
-        const songId = comment.song['_id'].toString();
+        const songId = comment.song['_id'];
         const relatedComments = await Comments.find({ song: songId });
         res.write(`data: ${JSON.stringify({ eventData, relatedComments })}\n\n`);
     });

@@ -5,8 +5,7 @@ import {Security} from "../../security/security";
 
 export class AuthController {
     static async register(req: any, res: any) {
-        const {firstName, lastName, username, password, phoneNumber, gender, avatar} = req.body;
-
+        const {firstname, lastname, username, password, phoneNumber, gender, avatar} = req.body;
         try {
             const existingUser = await Users.findOne({username});
 
@@ -23,8 +22,8 @@ export class AuthController {
             }
 
             await Users.create({
-                firstName,
-                lastName,
+                firstName: firstname,
+                lastName: lastname,
                 username,
                 phoneNumber,
                 gender,

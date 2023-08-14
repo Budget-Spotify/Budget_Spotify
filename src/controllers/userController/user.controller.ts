@@ -397,6 +397,7 @@ class UserController {
             const songId = req.params["songId"];
             const song = await Songs.findById(songId);
             const user = await Users.findById(userId);
+            const content = req.body.comment
 
             if (!song) {
                 return res.status(404).json({message: 'Song not found'});
@@ -412,6 +413,7 @@ class UserController {
                 song: song,
                 user: user,
                 uploadTime: formattedDate,
+                content: content
             });
 
             res.status(201).json({message: 'Comment created successfully',}); // check later if need return comment

@@ -10,6 +10,7 @@ userRouter.use(Security.verifyToken);
 userRouter.post('/upload/song', userController.addSong);
 userRouter.post('/playlist/add-song/:playlistId', userController.addSongToPlaylist);
 userRouter.post('/playlist/remove-song/:playlistId', userController.removeSongFromPlaylist);
+userRouter.post('/song/:songId', userController.commentOnSong);
 userRouter.get('/list/songs', userController.getSongs);
 userRouter.get('/song/detail/:id', userController.getOneSong);
 userRouter.get('/info', userController.getDetail);

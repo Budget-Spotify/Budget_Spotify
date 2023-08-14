@@ -12,6 +12,22 @@ const PORT = 8000
 
 app.use(cors({origin: true, credentials: true}));
 app.use(bodyParser.json());
+
+app.get('/events', (req, res) => { // may be can use like router
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const interval = setInterval(() => {
+        const currentTime = new Date().toLocaleTimeString(); // data need to transport
+        res.write(`data: ${currentTime}\n\n`);  // the way transport data
+    }, 1000);
+
+    req.on('close', () => {
+        clearInterval(interval);
+    });
+});
+
 DatabaseConnect
     .connectDB()
     .then(res => console.log('Connect DB successfully!'))

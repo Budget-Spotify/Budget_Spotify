@@ -1,5 +1,6 @@
 import express from 'express';
 import { Comments } from "../models/schemas/Comments";
+import {Songs} from "../models/schemas/Songs";
 
 const sseRouter = express.Router();
 
@@ -9,14 +10,17 @@ sseRouter.get('/events', (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     const commentStream = Comments.watch();
 
-    commentStream.on('change', (change) => {
+    commentStream.on('change', async (change) => {
         const eventData = {
             operationType: change.operationType,
             documentKey: change.documentKey,
             updatedFields: change.updateDescription?.updatedFields || null
         };
-
-        res.write(`data: ${JSON.stringify(eventData)}\n\n`);
+        const commentId = eventData.documentKey._id.toString();
+        const comment = await Comments.findById(commentId);
+        const songId = comment.song['_id'].toString();
+        const relatedComments = await Comments.find({ song: songId });
+        res.write(`data: ${JSON.stringify({ eventData, relatedComments })}\n\n`);
     });
 
     req.on('close', () => {

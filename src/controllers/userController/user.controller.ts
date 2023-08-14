@@ -115,7 +115,7 @@ class UserController {
     static async getSongs(req, res) {
         try {
             const userId = req.user.id;
-            let songs = await 
+            let songs = await
             Songs.find({ uploader: userId })
                 .sort({ uploadTime: -1 })
                 .populate({path:'singers', model: Singers})
@@ -222,7 +222,8 @@ class UserController {
     static async getOneSong(req, res) {
         try {
             let songId = req.params.id;
-            let song = await Songs.findOne({ _id: songId });
+            let song = await Songs.findOne({_id: songId})
+                .populate({path: 'singers', model: Singers});
             if (song) {
                 res.status(200).json({
                     status: 'succeeded',
@@ -281,8 +282,13 @@ class UserController {
         try {
             const playlistId = req.params["playlistId"];
             const playlist = await Playlists.findById(playlistId)
-                .populate({ path: 'songs', model: Songs });
-            res.status(200).json({ playlist: playlist });
+                .populate({
+                    path: 'songs', model: Songs, populate: {
+                        path: 'singers',
+                        model: Singers,
+                    }
+                });
+            res.status(200).json({playlist: playlist});
         } catch (e) {
             res.status(404).json({ message: "Can not find playlist" });
         }
@@ -293,8 +299,8 @@ class UserController {
             const songName = req.query.songName;
             if (songName) {
                 const foundSongs = await Songs.find({
-                    songName: { $regex: new RegExp(songName, 'i') }
-                });
+                    songName: {$regex: new RegExp(songName, 'i')}
+                }).populate({path: 'singers', model: Singers});
 
                 res.status(200).json(foundSongs);
             } else {

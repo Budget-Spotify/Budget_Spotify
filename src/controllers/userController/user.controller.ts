@@ -1,7 +1,11 @@
+import { model } from 'mongoose';
 import { Songs } from "../../models/schemas/Songs";
 import { Users } from "../../models/schemas/Users";
 import { Playlists } from "../../models/schemas/Playlists";
 import bcrypt from "bcrypt";
+import { Singers } from '../../models/schemas/Singers';
+import { Composers } from '../../models/schemas/Composers';
+import { Tags } from '../../models/schemas/Tags';
 
 class UserController {
     static async addSong(req, res) {
@@ -28,6 +32,54 @@ class UserController {
             }
         } catch (e) {
             res.status(404).json({ status: "failed", message: e.message })
+        }
+    }
+
+    static async editSong(req,res){
+        try{
+            const {_id,songName,
+                description,
+                fileURL,
+                avatar,
+                uploadTime,
+                singers,
+                composers,
+                tags,
+                uploader,
+                isPublic} = req.body    
+            const song = await Songs.findOne({_id,uploader});
+            if (!song) {
+                const data = {
+                    status: "failed",
+                    message: 'Song does not exist!',
+                }
+                return res.status(404).json(data);
+            }
+            const userId = req.user.id;
+            const uploaderId = song.uploader.toString();
+            if (userId !== uploaderId) {
+                const data = {
+                    status: "failed",
+                    message: 'This song does not belong to you!',
+                }
+                return res.status(403).json(data);
+            }
+            const updatedSong = await Songs.findOneAndUpdate(  
+                { _id: song._id },
+                { $set: {songName,
+                    description,
+                    fileURL,
+                    avatar,
+                    uploadTime,
+                    singers,
+                    composers,
+                    tags,
+                    uploader,
+                    isPublic } },
+                { new: true })
+            res.status(200).json({status:"succeeded", song:updatedSong})
+        }catch(err){
+            res.status(404).json({ status: "failed", message:" err.message" });
         }
     }
 
@@ -63,7 +115,13 @@ class UserController {
     static async getSongs(req, res) {
         try {
             const userId = req.user.id;
-            let songs = await Songs.find({ uploader: userId }).sort({ uploadTime: -1 });
+            let songs = await
+            Songs.find({ uploader: userId })
+                .sort({ uploadTime: -1 })
+                .populate({path:'singers', model: Singers})
+                .populate({path:'composers', model: Composers})
+                .populate({path:'tags', model: Tags})
+                ;
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',
@@ -164,7 +222,10 @@ class UserController {
     static async getOneSong(req, res) {
         try {
             let songId = req.params.id;
-            let song = await Songs.findOne({ _id: songId });
+            let song = await Songs.findOne({_id: songId})
+                .populate({path: 'singers', model: Singers})
+                .populate({path: 'composers', model: Composers})
+                .populate({path: 'tags', model: Tags})
             if (song) {
                 res.status(200).json({
                     status: 'succeeded',
@@ -223,8 +284,13 @@ class UserController {
         try {
             const playlistId = req.params["playlistId"];
             const playlist = await Playlists.findById(playlistId)
-                .populate({ path: 'songs', model: Songs });
-            res.status(200).json({ playlist: playlist });
+                .populate({
+                    path: 'songs', model: Songs, populate: {
+                        path: 'singers',
+                        model: Singers,
+                    }
+                });
+            res.status(200).json({playlist: playlist});
         } catch (e) {
             res.status(404).json({ message: "Can not find playlist" });
         }
@@ -235,8 +301,8 @@ class UserController {
             const songName = req.query.songName;
             if (songName) {
                 const foundSongs = await Songs.find({
-                    songName: { $regex: new RegExp(songName, 'i') }
-                });
+                    songName: {$regex: new RegExp(songName, 'i')}
+                }).populate({path: 'singers', model: Singers});
 
                 res.status(200).json(foundSongs);
             } else {

@@ -395,7 +395,6 @@ class UserController {
         try {
             const userId = req.user.id;
             const songId = req.params["songId"];
-            console.log(req.params)
             const song = await Songs.findById(songId);
             const user = await Users.findById(userId);
 

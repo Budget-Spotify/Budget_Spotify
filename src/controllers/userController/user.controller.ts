@@ -223,7 +223,9 @@ class UserController {
         try {
             let songId = req.params.id;
             let song = await Songs.findOne({_id: songId})
-                .populate({path: 'singers', model: Singers});
+                .populate({path: 'singers', model: Singers})
+                .populate({path: 'composers', model: Composers})
+                .populate({path: 'tags', model: Tags})
             if (song) {
                 res.status(200).json({
                     status: 'succeeded',

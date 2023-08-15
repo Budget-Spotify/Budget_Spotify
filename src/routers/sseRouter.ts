@@ -4,10 +4,14 @@ import {Users} from "../models/schemas/Users";
 
 const sseRouter = express.Router();
 
-sseRouter.get('/events', (req, res) => {
+sseRouter.get('/comment-on-song', async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+
+    const initialComments = await Comments.find({}).populate({path: 'user', model: Users});
+    res.write(`data: ${JSON.stringify({initialComments})}\n\n`);
+
     const commentStream = Comments.watch();
 
     commentStream.on('change', async (change) => {
@@ -21,7 +25,6 @@ sseRouter.get('/events', (req, res) => {
         const songId = comment.song['_id'];
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});
-        console.log(relatedComments)
         res.write(`data: ${JSON.stringify({eventData, relatedComments})}\n\n`);
     });
 

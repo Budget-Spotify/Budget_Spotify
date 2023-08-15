@@ -46,7 +46,6 @@ export class Security {
                 avatar: req.body.picture,
                 password: null,
             };
-            console.log(req.body)
             await AuthController.register(req, res);
             await AuthController.login(req, res);
         } catch (e) {

@@ -60,14 +60,15 @@ export class SongController {
 
     static async getRandomSong(req, res) {
         try {
+            let existingSongIds = req.body;
             let randomSong = await Songs.aggregate([
-                {$match: {isPublic: true}},
-                {$sample: {size: 1}}
+                { $match: { isPublic: true, _id: { $nin: existingSongIds } } },
+                { $sample: { size: 1 } }
             ]);
             res.status(200).json({
                 status: 'succeeded',
                 data: randomSong[0]
-            })
+            });
         } catch (err) {
             res.status(404).json({
                 status: 'failed',

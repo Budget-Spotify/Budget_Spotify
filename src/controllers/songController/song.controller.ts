@@ -46,7 +46,9 @@ export class SongController {
                     singers: foundSingers
                 });
             } else {
-                let songs = await Songs.find({ isPublic: true }).sort({ uploadTime: -1 });
+                let songs = await Songs.find({ isPublic: true }).sort({ uploadTime: -1 })
+                    .populate({path: 'singers', model: Singers})
+                    .sort({uploadTime: -1});
                 let playlists = await Playlists.find().sort({ uploadTime: -1 })
                 let singers = await Singers.find()
                 res.status(200).json({
@@ -72,7 +74,7 @@ export class SongController {
                 status: 'succeeded',
                 data: randomSong[0]
             })
-        } catch (err) {
+        } catch (err){
             res.status(404).json({
                 status: 'failed',
                 message: err.message

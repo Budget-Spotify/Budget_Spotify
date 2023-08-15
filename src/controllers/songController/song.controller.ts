@@ -74,13 +74,8 @@ export class SongController {
             res.status(200).json({
                 status: 'succeeded',
                 data: randomSong[0]
-<<<<<<< HEAD
-            })
-        } catch (err){
-=======
             });
         } catch (err) {
->>>>>>> 9b02ae263975e9316f78e92740f9b73398ef96bc
             res.status(404).json({
                 status: 'failed',
                 message: err.message

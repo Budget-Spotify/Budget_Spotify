@@ -391,6 +391,21 @@ class UserController {
         }
     }
 
+    static async showCommentInSong(req: any, res: any) {
+        try {
+            const songId = req.params["songId"];
+            const allComment = await Comments.find({song: songId})
+                .populate({path: 'user', model: Users});
+            res.status(200).json({message: "get song complete", allComment: allComment})
+        } catch (e) {
+            res.status(500).json({
+                status: 'failed',
+                message: e.message
+            });
+        }
+
+    }
+
     static async commentOnSong(req: any, res: any) {
         try {
             const userId = req.user.id;
@@ -409,14 +424,27 @@ class UserController {
                 year: 'numeric'
             });
 
-            await Comments.create({
+            const comment = await Comments.create({
                 song: song,
                 user: user,
                 uploadTime: formattedDate,
                 content: content
             });
 
-            res.status(201).json({message: 'Comment created successfully',}); // check later if need return comment
+            res.status(201).json({message: 'Comment created successfully', comment: comment}); // check later if need return comment
+        } catch (err) {
+            res.status(500).json({
+                status: 'failed',
+                message: err.message
+            });
+        }
+    }
+
+    static async deleteCommentOnSong(req: any, res: any) {
+        try {
+            const commentId = req.params["commentId"];
+            await Comments.deleteOne({_id: commentId});
+            res.status(200).json({message: "delete comment complete"})
         } catch (err) {
             res.status(500).json({
                 status: 'failed',

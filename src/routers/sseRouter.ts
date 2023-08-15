@@ -19,11 +19,7 @@ sseRouter.get('/comment-on-song', async (req, res) => {
         };
         const commentId = eventData.documentKey._id;
         const comment = await Comments.findById(commentId);
-        const songId = comment.song['_id'];
-
-        const initialComments = await Comments.find({song: songId})
-            .populate({path: 'user', model: Users});
-        res.write(`data: ${JSON.stringify({initialComments})}\n\n`);
+        const songId = comment?.song['_id'];
 
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});

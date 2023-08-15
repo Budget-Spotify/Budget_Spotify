@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 
 interface IPlaylists {
+    uploader:object
     playlistName: string;
     avatar: string;
     uploadTime: string;
@@ -9,6 +10,7 @@ interface IPlaylists {
 }
 
 const playlistSchema = new Schema<IPlaylists>({
+    uploader:{type:Schema.Types.ObjectId,ref:'Users'},
     playlistName: String,
     avatar: String,
     uploadTime: String,

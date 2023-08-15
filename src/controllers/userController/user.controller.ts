@@ -285,7 +285,9 @@ class UserController {
             const playlistId = req.params["playlistId"];
             const playlist = await Playlists.findById(playlistId)
                 .populate({
-                    path: 'songs', model: Songs, populate: {
+                    path: 'songs', model: Songs, match: {
+                        isPublic: true,
+                    }, populate: {
                         path: 'singers',
                         model: Singers,
                     }
@@ -301,7 +303,8 @@ class UserController {
             const songName = req.query.songName;
             if (songName) {
                 const foundSongs = await Songs.find({
-                    songName: {$regex: new RegExp(songName, 'i')}
+                    songName: {$regex: new RegExp(songName, 'i')},
+                    isPublic: true
                 }).populate({path: 'singers', model: Singers});
 
                 res.status(200).json(foundSongs);

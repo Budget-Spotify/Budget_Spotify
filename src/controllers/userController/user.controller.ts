@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import { Singers } from '../../models/schemas/Singers';
 import { Composers } from '../../models/schemas/Composers';
 import { Tags } from '../../models/schemas/Tags';
+import {Comments} from "../../models/schemas/Comments";
 
 class UserController {
     static async addSong(req, res) {
@@ -448,8 +449,68 @@ class UserController {
             });
         }
     }
-   
-    
+
+    static async showCommentInSong(req: any, res: any) {
+        try {
+            const songId = req.params["songId"];
+            const allComment = await Comments.find({song: songId})
+                .populate({path: 'user', model: Users});
+            res.status(200).json({message: "get song complete", allComment: allComment})
+        } catch (e) {
+            res.status(500).json({
+                status: 'failed',
+                message: e.message
+            });
+        }
+
+    }
+
+    static async commentOnSong(req: any, res: any) {
+        try {
+            const userId = req.user.id;
+            const songId = req.params["songId"];
+            const song = await Songs.findById(songId);
+            const user = await Users.findById(userId);
+            const content = req.body.comment
+
+            if (!song) {
+                return res.status(404).json({message: 'Song not found'});
+            }
+
+            const formattedDate = new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+
+            const comment = await Comments.create({
+                song: song,
+                user: user,
+                uploadTime: formattedDate,
+                content: content
+            });
+
+            res.status(201).json({message: 'Comment created successfully', comment: comment}); // check later if need return comment
+        } catch (err) {
+            res.status(500).json({
+                status: 'failed',
+                message: err.message
+            });
+        }
+    }
+
+    static async deleteCommentOnSong(req: any, res: any) {
+        try {
+            const commentId = req.params["commentId"];
+            await Comments.deleteOne({_id: commentId});
+            res.status(200).json({message: "delete comment complete"})
+        } catch (err) {
+            res.status(500).json({
+                status: 'failed',
+                message: err.message
+            });
+        }
+    }
 }
 
 export default UserController

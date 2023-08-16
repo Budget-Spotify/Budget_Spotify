@@ -565,10 +565,10 @@ class UserController {
                 $pull: { songLikeCounts: dislike._id}
             })
 
-            res.status(200).json({message: "dislike success"});
+            res.status(200).json({message: "dislike song success"});
         } catch (e) {
             res.status(500).json({
-                status: 'dislikeSong failed',
+                status: 'dislike Song failed',
                 message: e.message
             });
         }
@@ -577,19 +577,57 @@ class UserController {
     static async likePlaylist(req: any, res: any){
         try {
             const userId = req.user.id;
-            const playlistId = req.params["playlistId"];
-            const playlist = await Songs.findById(playlistId);
-            const user = await Users.findById(userId);
+            const playlistId = req.params.id;
 
-            const playlistLikeCounts = await PlaylistLikeCounts.create({
-                playlist: playlist,
-                user: user,
-            });
+            const existingPlaylist = await PlaylistLikeCounts.findOne({ playlist: playlistId, user: userId });
 
-            res.status(201).json({message: 'Song like successfully', playlistLikeCounts: playlistLikeCounts});
+            if(!existingPlaylist){
+                const playlist = await Playlists.findById(playlistId);
+                const user = await Users.findById(userId);
+
+                const playlistLikeCounts = await PlaylistLikeCounts.create({
+                    playlist: playlist,
+                    user: user,
+                });
+
+                playlist.playlistLikeCounts.push(playlistLikeCounts);
+                user.songLikeCounts.push(playlistLikeCounts);
+
+                await playlist.save();
+                await user.save();
+
+                res.status(201).json({message: 'Playlist like successfully'});
+            } else {
+                return res.status(400).json({ message: 'Playlist like already' });
+            }
         } catch (e) {
             res.status(500).json({
-                status: 'failed',
+                status: 'Like playlist failed',
+                message: e.message
+            });
+        }
+    }
+
+    static async dislikePlaylist(req: any, res: any){
+        try {
+            const userId = req.user.id;
+            const playlistId = req.params["id"];
+
+            const dislike = await PlaylistLikeCounts.findOne({ user: userId, playlist: playlistId });
+            await dislike.deleteOne();
+
+            await Users.findByIdAndUpdate(userId, {
+                $pull: { playlistLikeCounts: dislike._id }
+            });
+
+            await Playlists.findByIdAndUpdate(playlistId, {
+                $pull: { playlistLikeCounts: dislike._id}
+            })
+
+            res.status(200).json({message: "dislike playlist success"});
+        } catch (e) {
+            res.status(500).json({
+                status: 'Dislike playlist failed',
                 message: e.message
             });
         }

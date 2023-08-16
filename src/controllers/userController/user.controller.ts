@@ -9,6 +9,7 @@ import { Tags } from '../../models/schemas/Tags';
 import {Comments} from "../../models/schemas/Comments";
 import {SongLikeCounts} from "../../models/schemas/SongLikeCounts";
 import {PlaylistLikeCounts} from "../../models/schemas/PlaylistLikeCounts";
+import {ObjectId} from "mongodb";
 
 class UserController {
     static async addSong(req, res) {
@@ -229,6 +230,7 @@ class UserController {
                 .populate({path: 'singers', model: Singers})
                 .populate({path: 'composers', model: Composers})
                 .populate({path: 'tags', model: Tags})
+                .populate({path: 'songLikeCounts', model: SongLikeCounts})
             if (song) {
                 res.status(200).json({
                     status: 'succeeded',
@@ -530,13 +532,19 @@ class UserController {
                     user: user,
                 });
 
-                res.status(201).json({message: 'Song like successfully', songLikeCounts: songLikeCounts});
+                song.songLikeCounts.push(songLikeCounts);
+                user.songLikeCounts.push(songLikeCounts);
+
+                await song.save();
+                await user.save();
+
+                res.status(201).json({message: 'Song like successfully'});
             } else {
                 return res.status(400).json({ message: 'Song like already' });
             }
         } catch (e) {
             res.status(500).json({
-                status: 'failed',
+                status: 'likeSong failed',
                 message: e.message
             });
         }
@@ -545,13 +553,22 @@ class UserController {
     static async dislikeSong(req: any, res: any){
         try {
             const userId = req.user.id;
-            const songId = req.params["songId"];
-            await SongLikeCounts.deleteOne({ user: userId, song: songId });
+            const songId = req.params["id"];
+            const dislike = await SongLikeCounts.findOne({ user: userId, song: songId });
+            await dislike.deleteOne();
+
+            await Users.findByIdAndUpdate(userId, {
+                $pull: { songLikeCounts: dislike._id }
+            });
+
+            await Songs.findByIdAndUpdate(songId, {
+                $pull: { songLikeCounts: dislike._id}
+            })
 
             res.status(200).json({message: "dislike success"});
         } catch (e) {
             res.status(500).json({
-                status: 'failed',
+                status: 'dislikeSong failed',
                 message: e.message
             });
         }

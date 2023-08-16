@@ -7,8 +7,8 @@ import { Singers } from '../../models/schemas/Singers';
 import { Composers } from '../../models/schemas/Composers';
 import { Tags } from '../../models/schemas/Tags';
 import {Comments} from "../../models/schemas/Comments";
-import {SongLikeCounts} from "../../models/schemas/songLikeCounts";
-import {PlaylistLikeCounts} from "../../models/schemas/playlistLikeCounts";
+import {SongLikeCounts} from "../../models/schemas/SongLikeCounts";
+import {PlaylistLikeCounts} from "../../models/schemas/PlaylistLikeCounts";
 
 class UserController {
     static async addSong(req, res) {
@@ -517,16 +517,38 @@ class UserController {
     static async likeSong(req: any, res: any){
         try {
             const userId = req.user.id;
-            const songId = req.params["songId"];
-            const song = await Songs.findById(songId);
-            const user = await Users.findById(userId);
+            const songId = req.params.id;
 
-            const songLikeCounts = await SongLikeCounts.create({
-                song: song,
-                user: user,
+            const existingLike = await SongLikeCounts.findOne({ song: songId, user: userId });
+
+            if(!existingLike){
+                const song = await Songs.findById(songId);
+                const user = await Users.findById(userId);
+
+                const songLikeCounts = await SongLikeCounts.create({
+                    song: song,
+                    user: user,
+                });
+
+                res.status(201).json({message: 'Song like successfully', songLikeCounts: songLikeCounts});
+            } else {
+                return res.status(400).json({ message: 'Song like already' });
+            }
+        } catch (e) {
+            res.status(500).json({
+                status: 'failed',
+                message: e.message
             });
+        }
+    }
 
-            res.status(201).json({message: 'Song like successfully', songLikeCounts: songLikeCounts});
+    static async dislikeSong(req: any, res: any){
+        try {
+            const userId = req.user.id;
+            const songId = req.params["songId"];
+            await SongLikeCounts.deleteOne({ user: userId, song: songId });
+
+            res.status(200).json({message: "dislike success"});
         } catch (e) {
             res.status(500).json({
                 status: 'failed',

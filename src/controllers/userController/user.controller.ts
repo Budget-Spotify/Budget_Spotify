@@ -36,6 +36,54 @@ class UserController {
         }
     }
 
+    static async editSong(req,res){
+        try{
+            const {_id,songName,
+                description,
+                fileURL,
+                avatar,
+                uploadTime,
+                singers,
+                composers,
+                tags,
+                uploader,
+                isPublic} = req.body
+            const song = await Songs.findOne({_id,uploader});
+            if (!song) {
+                const data = {
+                    status: "failed",
+                    message: 'Song does not exist!',
+                }
+                return res.status(404).json(data);
+            }
+            const userId = req.user.id;
+            const uploaderId = song.uploader.toString();
+            if (userId !== uploaderId) {
+                const data = {
+                    status: "failed",
+                    message: 'This song does not belong to you!',
+                }
+                return res.status(403).json(data);
+            }
+            const updatedSong = await Songs.findOneAndUpdate(
+                { _id: song._id },
+                { $set: {songName,
+                    description,
+                    fileURL,
+                    avatar,
+                    uploadTime,
+                    singers,
+                    composers,
+                    tags,
+                    uploader,
+                    isPublic } },
+                { new: true })
+            res.status(200).json({status:"succeeded", song:updatedSong})
+        }catch(err){
+            res.status(404).json({ status: "failed", message:" err.message" });
+        }
+    }
+
     static async deleteSong(req, res) {
         try {
             const song = await Songs.findOne({_id: req.body._id});
@@ -175,7 +223,10 @@ class UserController {
     static async getOneSong(req, res) {
         try {
             let songId = req.params.id;
-            let song = await Songs.findOne({_id: songId});
+            let song = await Songs.findOne({_id: songId})
+                .populate({path: 'singers', model: Singers})
+                .populate({path: 'composers', model: Composers})
+                .populate({path: 'tags', model: Tags})
             if (song) {
                 res.status(200).json({
                     status: 'succeeded',
@@ -234,7 +285,14 @@ class UserController {
         try {
             const playlistId = req.params["playlistId"];
             const playlist = await Playlists.findById(playlistId)
-                .populate({path: 'songs', model: Songs});
+                .populate({
+                    path: 'songs', model: Songs, match: {
+                        isPublic: true,
+                    }, populate: {
+                        path: 'singers',
+                        model: Singers,
+                    }
+                });
             res.status(200).json({playlist: playlist});
         } catch (e) {
             res.status(404).json({message: "Can not find playlist"});
@@ -246,8 +304,9 @@ class UserController {
             const songName = req.query.songName;
             if (songName) {
                 const foundSongs = await Songs.find({
-                    songName: {$regex: new RegExp(songName, 'i')}
-                });
+                    songName: {$regex: new RegExp(songName, 'i')},
+                    isPublic: true
+                }).populate({path: 'singers', model: Singers});
 
                 res.status(200).json(foundSongs);
             } else {

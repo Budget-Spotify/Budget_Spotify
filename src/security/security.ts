@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import {RefreshTokens} from "../models/schemas/RefreshToken";
-import {OAuth2Client} from 'google-auth-library';
-import {AuthController} from "../controllers/authController/auth.controller";
+import { RefreshTokens } from "../models/schemas/RefreshToken";
+import { OAuth2Client } from 'google-auth-library';
+import { AuthController } from "../controllers/authController/auth.controller";
 
 export class Security {
     private static jwtSecretKey: string = '123456';
@@ -9,21 +9,21 @@ export class Security {
 
     static accessToken(user: any) {
         return jwt.sign({
-                id: user._id || user.id,
-                role: user.role || user.id
-            },
+            id: user._id || user.id,
+            role: user.role || user.id
+        },
             Security.jwtSecretKey,
-            {expiresIn: "10s"}
+            { expiresIn: "10m" }
         );
     }
 
-    static refreshToken(user: any   ) {
+    static refreshToken(user: any) {
         return jwt.sign({
-                id: user._id || user.id,
-                role: user.role || user.id
-            },
+            id: user._id || user.id,
+            role: user.role || user.id
+        },
             Security.JwtRefreshKey,
-            {expiresIn: "50m"}
+            { expiresIn: "2h" }
         );
     }
 
@@ -75,20 +75,20 @@ export class Security {
             return res.status(401).json("Token not found");
         }
 
-        const existingRefreshToken = await RefreshTokens.findOne({refreshToken});
+        const existingRefreshToken = await RefreshTokens.findOne({ refreshToken });
         if (!existingRefreshToken) {
             return res.status(401).json("Refresh token is not valid");
         }
 
         const user = jwt.verify(refreshToken, Security.JwtRefreshKey);
-        await RefreshTokens.deleteOne({refreshToken: refreshToken});
+        await RefreshTokens.deleteOne({ refreshToken: refreshToken });
         const newAccessToken = Security.accessToken(user);
         const newRefreshToken = Security.refreshToken(user);
         await RefreshTokens.create({
             refreshToken: newRefreshToken,
             user: user['id']
         });
-        res.status(201).json({accessToken: newAccessToken, refreshToken: newRefreshToken});
+        res.status(201).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
     }
 
     static checkAdmin(req: any, res: any, next: any) {

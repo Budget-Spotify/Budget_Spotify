@@ -7,6 +7,8 @@ import { Singers } from '../../models/schemas/Singers';
 import { Composers } from '../../models/schemas/Composers';
 import { Tags } from '../../models/schemas/Tags';
 import {Comments} from "../../models/schemas/Comments";
+import {SongLikeCounts} from "../../models/schemas/songLikeCounts";
+import {PlaylistLikeCounts} from "../../models/schemas/playlistLikeCounts";
 
 class UserController {
     static async addSong(req, res) {
@@ -47,7 +49,7 @@ class UserController {
                 composers,
                 tags,
                 uploader,
-                isPublic} = req.body    
+                isPublic} = req.body
             const song = await Songs.findOne({_id,uploader});
             if (!song) {
                 const data = {
@@ -65,7 +67,7 @@ class UserController {
                 }
                 return res.status(403).json(data);
             }
-            const updatedSong = await Songs.findOneAndUpdate(  
+            const updatedSong = await Songs.findOneAndUpdate(
                 { _id: song._id },
                 { $set: {songName,
                     description,
@@ -508,6 +510,48 @@ class UserController {
             res.status(500).json({
                 status: 'failed',
                 message: err.message
+            });
+        }
+    }
+
+    static async likeSong(req: any, res: any){
+        try {
+            const userId = req.user.id;
+            const songId = req.params["songId"];
+            const song = await Songs.findById(songId);
+            const user = await Users.findById(userId);
+
+            const songLikeCounts = await SongLikeCounts.create({
+                song: song,
+                user: user,
+            });
+
+            res.status(201).json({message: 'Song like successfully', songLikeCounts: songLikeCounts});
+        } catch (e) {
+            res.status(500).json({
+                status: 'failed',
+                message: e.message
+            });
+        }
+    }
+
+    static async likePlaylist(req: any, res: any){
+        try {
+            const userId = req.user.id;
+            const playlistId = req.params["playlistId"];
+            const playlist = await Songs.findById(playlistId);
+            const user = await Users.findById(userId);
+
+            const playlistLikeCounts = await PlaylistLikeCounts.create({
+                playlist: playlist,
+                user: user,
+            });
+
+            res.status(201).json({message: 'Song like successfully', playlistLikeCounts: playlistLikeCounts});
+        } catch (e) {
+            res.status(500).json({
+                status: 'failed',
+                message: e.message
             });
         }
     }

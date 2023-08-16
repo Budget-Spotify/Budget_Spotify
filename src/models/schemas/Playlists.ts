@@ -6,7 +6,8 @@ interface IPlaylists {
     avatar: string;
     uploadTime: string;
     description: string;
-    songs: object[]
+    songs: object[],
+    playlistLikeCounts: object[];
 }
 
 const playlistSchema = new Schema<IPlaylists>({
@@ -15,7 +16,8 @@ const playlistSchema = new Schema<IPlaylists>({
     avatar: String,
     uploadTime: String,
     description: String,
-    songs: [{ type: Schema.Types.ObjectId, ref: 'Songs' }]
+    songs: [{ type: Schema.Types.ObjectId, ref: 'Songs' }],
+    playlistLikeCounts: [{type: Schema.Types.ObjectId, ref: 'PlaylistLikeCounts'}],
 });
 
 export const Playlists = model<IPlaylists>('Playlists', playlistSchema, 'playlists');

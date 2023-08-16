@@ -11,6 +11,7 @@ interface ISongs {
     tags: object[];
     uploader: object;
     isPublic: boolean;
+    songLikeCounts: object[];
 }
 
 const songSchema = new Schema<ISongs>({
@@ -23,6 +24,7 @@ const songSchema = new Schema<ISongs>({
     composers: [{type: Schema.Types.ObjectId, ref: 'Composers'}],
     tags: [{type: Schema.Types.ObjectId, ref: 'Tags'}],
     uploader: {type: Schema.Types.ObjectId, ref: 'Users'},
-    isPublic: Boolean
+    isPublic: Boolean,
+    songLikeCounts: [{type: Schema.Types.ObjectId, ref: 'SongLikeCounts'}],
 });
 export const Songs = model<ISongs>('Songs', songSchema, 'songs');

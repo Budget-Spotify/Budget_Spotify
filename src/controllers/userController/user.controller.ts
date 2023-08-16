@@ -265,7 +265,7 @@ class UserController {
                 status: 'succeeded',
                 message: "add playlist succcess"
             })
-        } catch (err) {
+        } catch(err) {
             res.status(404).json({ status: "failed", message: err.message });
         }
     }

@@ -4,7 +4,7 @@ import {Users} from "../models/schemas/Users";
 
 const sseRouter = express.Router();
 
-sseRouter.get('/comment-on-song', async (req, res) => {
+sseRouter.get('/comment-on-song/:songId', async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -19,7 +19,7 @@ sseRouter.get('/comment-on-song', async (req, res) => {
         };
         const commentId = eventData.documentKey._id;
         const comment = await Comments.findById(commentId);
-        const songId = comment?.song['_id'];
+        const songId = req.params.songId
 
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});

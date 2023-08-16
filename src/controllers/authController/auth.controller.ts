@@ -32,7 +32,7 @@ export class AuthController {
                 role: 'user'
             });
 
-            if (req.authMethod === "jwt") {
+            if (req.authMethod !== "google") {
                 res.status(201).json({message: 'Sign up success!'});
             }
         } catch (e) {

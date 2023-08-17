@@ -1,6 +1,7 @@
 import {Schema, model} from "mongoose";
 
 interface IComments {
+    playlist:object
     song: object;
     user: object;
     uploadTime: string;
@@ -8,6 +9,7 @@ interface IComments {
 }
 
 const commentSchema = new Schema<IComments>({
+    playlist:{type: Schema.Types.ObjectId, ref: 'Playlists'},
     song: {type: Schema.Types.ObjectId, ref: 'Songs'},
     user: {type: Schema.Types.ObjectId, ref: 'Users'},
     uploadTime: String,

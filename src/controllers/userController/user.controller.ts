@@ -39,9 +39,9 @@ class UserController {
         }
     }
 
-    static async editSong(req,res){
-        try{
-            const {_id,songName,
+    static async editSong(req, res) {
+        try {
+            const { _id, songName,
                 description,
                 fileURL,
                 avatar,
@@ -70,20 +70,24 @@ class UserController {
             }
             const updatedSong = await Songs.findOneAndUpdate(
                 { _id: song._id },
-                { $set: {songName,
-                    description,
-                    fileURL,
-                    avatar,
-                    uploadTime,
-                    singers,
-                    composers,
-                    tags,
-                    uploader,
-                    isPublic } },
+                {
+                    $set: {
+                        songName,
+                        description,
+                        fileURL,
+                        avatar,
+                        uploadTime,
+                        singers,
+                        composers,
+                        tags,
+                        uploader,
+                        isPublic
+                    }
+                },
                 { new: true })
-            res.status(200).json({status:"succeeded", song:updatedSong})
-        }catch(err){
-            res.status(404).json({ status: "failed", message:" err.message" });
+            res.status(200).json({ status: "succeeded", song: updatedSong })
+        } catch (err) {
+            res.status(404).json({ status: "failed", message: " err.message" });
         }
     }
 
@@ -120,11 +124,11 @@ class UserController {
         try {
             const userId = req.user.id;
             let songs = await
-            Songs.find({ uploader: userId })
-                .sort({ uploadTime: -1 })
-                .populate({path:'singers', model: Singers})
-                .populate({path:'composers', model: Composers})
-                .populate({path:'tags', model: Tags})
+                Songs.find({ uploader: userId })
+                    .sort({ uploadTime: -1 })
+                    .populate({ path: 'singers', model: Singers })
+                    .populate({ path: 'composers', model: Composers })
+                    .populate({ path: 'tags', model: Tags })
                 ;
             if (songs.length > 0) {
                 res.status(200).json({
@@ -256,7 +260,7 @@ class UserController {
             const year = date.getFullYear();
             const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
             let newPlayList = new Playlists({
-                uploader:req.user.id,
+                uploader: req.user.id,
                 playlistName: req.body.playlistName,
                 avatar: req.body.avatar,
                 uploadTime: formattedDate,
@@ -269,7 +273,7 @@ class UserController {
                 status: 'succeeded',
                 message: "add playlist succcess"
             })
-        } catch(err) {
+        } catch (err) {
             res.status(404).json({ status: "failed", message: err.message });
         }
     }
@@ -310,9 +314,9 @@ class UserController {
             const songName = req.query.songName;
             if (songName) {
                 const foundSongs = await Songs.find({
-                    songName: {$regex: new RegExp(songName, 'i')},
+                    songName: { $regex: new RegExp(songName, 'i') },
                     isPublic: true
-                }).populate({path: 'singers', model: Singers});
+                }).populate({ path: 'singers', model: Singers });
 
                 res.status(200).json(foundSongs);
             } else {
@@ -459,9 +463,9 @@ class UserController {
     static async showCommentInSong(req: any, res: any) {
         try {
             const songId = req.params["songId"];
-            const allComment = await Comments.find({song: songId})
-                .populate({path: 'user', model: Users});
-            res.status(200).json({message: "get song complete", allComment: allComment})
+            const allComment = await Comments.find({ song: songId })
+                .populate({ path: 'user', model: Users });
+            res.status(200).json({ message: "get song complete", allComment: allComment })
         } catch (e) {
             res.status(500).json({
                 status: 'failed',
@@ -480,7 +484,7 @@ class UserController {
             const content = req.body.comment
 
             if (!song) {
-                return res.status(404).json({message: 'Song not found'});
+                return res.status(404).json({ message: 'Song not found' });
             }
 
             const formattedDate = new Date().toLocaleDateString('en-GB', {
@@ -496,7 +500,7 @@ class UserController {
                 content: content
             });
 
-            res.status(201).json({message: 'Comment created successfully', comment: comment}); // check later if need return comment
+            res.status(201).json({ message: 'Comment created successfully', comment: comment }); // check later if need return comment
         } catch (err) {
             res.status(500).json({
                 status: 'failed',
@@ -505,11 +509,48 @@ class UserController {
         }
     }
 
-    static async deleteCommentOnSong(req: any, res: any) {
+    static async deleteComment(req: any, res: any) {
         try {
             const commentId = req.params["commentId"];
-            await Comments.deleteOne({_id: commentId});
-            res.status(200).json({message: "delete comment complete"})
+            await Comments.deleteOne({ _id: commentId });
+            res.status(200).json({ message: "delete comment complete" })
+        } catch (err) {
+            res.status(500).json({
+                status: 'failed',
+                message: err.message
+            });
+        }
+    }
+
+    static async commentOnPlaylist(req: any, res: any) {
+        try {
+            const userId = req.user.id;
+            const playlistId = req.params["playlistId"];
+            const playlist = await Playlists.findById(playlistId);
+            const user = await Users.findById(userId);
+            const content = req.body.comment
+
+            if (!playlist) {
+                return res.status(404).json({ message: 'Song not found' });
+            }
+
+            const formattedDate = new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            const comment = await Comments.create({
+                playlist: playlist,
+                user: user,
+                uploadTime: formattedDate,
+                content: content
+            });
+
+            res.status(201).json({ message: 'Comment created successfully', comment: comment }); // check later if need return comment
         } catch (err) {
             res.status(500).json({
                 status: 'failed',

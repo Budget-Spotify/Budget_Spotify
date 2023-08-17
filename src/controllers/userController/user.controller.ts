@@ -256,6 +256,7 @@ class UserController {
             const year = date.getFullYear();
             const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
             let newPlayList = new Playlists({
+                uploader:req.user.id,
                 playlistName: req.body.playlistName,
                 avatar: req.body.avatar,
                 uploadTime: formattedDate,
@@ -268,7 +269,7 @@ class UserController {
                 status: 'succeeded',
                 message: "add playlist succcess"
             })
-        } catch (err) {
+        } catch(err) {
             res.status(404).json({ status: "failed", message: err.message });
         }
     }

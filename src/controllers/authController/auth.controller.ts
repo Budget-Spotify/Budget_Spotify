@@ -2,6 +2,8 @@ import {Users} from "../../models/schemas/Users";
 import {RefreshTokens} from "../../models/schemas/RefreshToken";
 import bcrypt from "bcrypt";
 import {Security} from "../../security/security";
+import {SongLikeCounts} from "../../models/schemas/SongLikeCounts";
+import {PlaylistLikeCounts} from "../../models/schemas/PlaylistLikeCounts";
 
 export class AuthController {
     static async register(req: any, res: any) {
@@ -44,7 +46,9 @@ export class AuthController {
     static async login(req: any, res: any) {
         const {username, password} = req.body;
         try {
-            const user = await Users.findOne({username});
+            const user = await Users.findOne({username})
+                .populate({path: 'songLikeCounts', model: SongLikeCounts})
+                .populate({path: 'playlistLikeCounts', model: PlaylistLikeCounts});
             if (!user) {
                 return res.status(404).json({message: 'Username does not exist!'});
             }
@@ -78,7 +82,9 @@ export class AuthController {
                     gender: user.gender,
                     avatar: user.avatar,
                     playlist: user.playlist,
-                    songsUploaded: user.songsUploaded
+                    songsUploaded: user.songsUploaded,
+                    songLikeCounts: user.songLikeCounts,
+                    playlistLikeCounts: user.playlistLikeCounts
                 }
             });
         } catch (e) {

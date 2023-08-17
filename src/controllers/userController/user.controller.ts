@@ -295,8 +295,9 @@ class UserController {
                     }, populate: {
                         path: 'singers',
                         model: Singers,
-                    }
-                });
+                    },
+                })
+                .populate({ path: 'playlistLikeCounts', model: PlaylistLikeCounts});
             res.status(200).json({playlist: playlist});
         } catch (e) {
             res.status(404).json({ message: "Can not find playlist" });

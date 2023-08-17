@@ -3,6 +3,7 @@ import { Composers } from "../../models/schemas/Composers";
 import { Tags } from "../../models/schemas/Tags";
 import { Songs } from "../../models/schemas/Songs";
 import { Playlists } from "../../models/schemas/Playlists";
+import {PlaylistLikeCounts} from "../../models/schemas/PlaylistLikeCounts";
 export class SongController {
     static async getPublicSongs(req, res) {
         try {
@@ -131,7 +132,8 @@ export class SongController {
         try {
             const playlistId = req.params["playlistId"];
             const playlist = await Playlists.findById(playlistId)
-                .populate({ path: 'songs', model: Songs });
+                .populate({ path: 'songs', model: Songs })
+                .populate({ path: 'playlistLikeCounts', model: PlaylistLikeCounts});
             res.status(200).json({ playlist: playlist });
         } catch (e) {
             res.status(404).json({ message: "Can not find playlist" });

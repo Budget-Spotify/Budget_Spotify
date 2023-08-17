@@ -16,7 +16,7 @@ userRouter.get('/song/detail/:id', userController.getOneSong);
 userRouter.get('/song/like/:id', userController.likeSong);
 userRouter.get('/song/dislike/:id', userController.dislikeSong);
 userRouter.get('/playlist/like/:id', userController.likePlaylist);
-userRouter.get('playlist/dislike/:id', )
+userRouter.get('/playlist/dislike/:id', userController.dislikePlaylist);
 userRouter.get('/info', userController.getDetail);
 userRouter.get('/playlist', userController.getPlayList);
 userRouter.get('/playlist/:playlistId', userController.getSongInPlaylist);

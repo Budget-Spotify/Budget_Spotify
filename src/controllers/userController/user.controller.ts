@@ -591,7 +591,7 @@ class UserController {
                 });
 
                 playlist.playlistLikeCounts.push(playlistLikeCounts);
-                user.songLikeCounts.push(playlistLikeCounts);
+                user.playlistLikeCounts.push(playlistLikeCounts);
 
                 await playlist.save();
                 await user.save();

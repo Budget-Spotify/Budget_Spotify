@@ -1,18 +1,18 @@
 import {Users} from "../../models/schemas/Users";
 import {RefreshTokens} from "../../models/schemas/RefreshToken";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import {Security} from "../../security/security";
+import {SongLikeCounts} from "../../models/schemas/SongLikeCounts";
+import {PlaylistLikeCounts} from "../../models/schemas/PlaylistLikeCounts";
 
 export class AuthController {
     static async register(req: any, res: any) {
-        const {firstName, lastName, username, password, phoneNumber, gender, avatar} = req.body;
-
+        const {firstname, lastname, username, password, phoneNumber, gender, avatar} = req.body;
         try {
             const existingUser = await Users.findOne({username});
 
             if (existingUser) {
-                if (req.authMethod === "jwt"){
+                if (req.authMethod === "jwt") {
                     return res.status(409).json("Account already exists");
                 }
                 return;
@@ -24,8 +24,8 @@ export class AuthController {
             }
 
             await Users.create({
-                firstName,
-                lastName,
+                firstName: firstname,
+                lastName: lastname,
                 username,
                 phoneNumber,
                 gender,
@@ -34,11 +34,11 @@ export class AuthController {
                 role: 'user'
             });
 
-            if (req.authMethod === "jwt") {
+            if (req.authMethod !== "google") {
                 res.status(201).json({message: 'Sign up success!'});
             }
         } catch (e) {
-            res.status(500).json({message: 'Server error!'}, e.message);
+            res.status(500).json({message: 'Server error!'});
         }
     }
 
@@ -46,7 +46,9 @@ export class AuthController {
     static async login(req: any, res: any) {
         const {username, password} = req.body;
         try {
-            const user = await Users.findOne({username});
+            const user = await Users.findOne({username})
+                .populate({path: 'songLikeCounts', model: SongLikeCounts})
+                .populate({path: 'playlistLikeCounts', model: PlaylistLikeCounts});
             if (!user) {
                 return res.status(404).json({message: 'Username does not exist!'});
             }
@@ -80,11 +82,13 @@ export class AuthController {
                     gender: user.gender,
                     avatar: user.avatar,
                     playlist: user.playlist,
-                    songsUploaded: user.songsUploaded
+                    songsUploaded: user.songsUploaded,
+                    songLikeCounts: user.songLikeCounts,
+                    playlistLikeCounts: user.playlistLikeCounts
                 }
             });
         } catch (e) {
-            res.status(500).json({message: 'Server error!'}, e.message);
+            res.status(500).json({message: 'Server error!'});
         }
     }
 
@@ -92,7 +96,7 @@ export class AuthController {
         Security.reqRefreshToken(req, res, next)
             .then()
             .catch(e => {
-                console.log(e)
+                res.status(500).json({message: e.message})
             });
     }
 }

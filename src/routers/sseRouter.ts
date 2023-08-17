@@ -66,10 +66,6 @@ sseRouter.get('/comment-on-playlist/:playlistId', async (req, res) => {
             documentKey: change.documentKey,
             updatedFields: change.updateDescription?.updatedFields || null
         };
-        const commentId = eventData.documentKey._id;
-        const comment = await Comments.findById(commentId);
-        const playlistId = comment?.playlist['_id'];
-
         relatedComments = await Comments.find({playlist: playlistId})
             .populate({path: 'user', model: Users});
         res.write(`data: ${JSON.stringify({eventData, relatedComments, playlistId})}\n\n`);

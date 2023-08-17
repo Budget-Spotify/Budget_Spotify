@@ -134,7 +134,7 @@ export class SongController {
             const playlistId = req.params["playlistId"];
             const playlist = await Playlists.findById(playlistId)
                 .populate({ path: 'songs', model: Songs })
-                .populate({ path: 'playlistLikeCounts', model: PlaylistLikeCounts});
+                .populate({ path: 'playlistLikeCounts', model: PlaylistLikeCounts})
                 .populate({ path: 'songs', model: Songs })
                 .populate({path:'uploader',model:Users})
             res.status(200).json({ playlist: playlist });

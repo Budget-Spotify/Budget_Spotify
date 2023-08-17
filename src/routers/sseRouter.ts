@@ -16,6 +16,8 @@ sseRouter.get('/comment-on-song/:songId', async (req, res) => {
       id: clientId,
       res,
     };
+    clients.push(newClient)
+    console.log(`${clientId} connected`);
 
     const commentStream = Comments.watch();
 
@@ -27,12 +29,18 @@ sseRouter.get('/comment-on-song/:songId', async (req, res) => {
         };
         const commentId = eventData.documentKey._id;
         const comment = await Comments.findById(commentId);
-        const songId = comment?.song['_id'];
+        const songId = comment.song['_id'];
 
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});
         clients.forEach(client=>{
-            if(client.id === req.params.songId) client.res.write(`data: ${JSON.stringify({eventData, relatedComments, songId})}\n\n`);
+            if(client.id === songId.toString()) {
+                let clientIDs = clients.map(client=>client.id)
+                console.log(clientIDs);
+                console.log(`send res to ${client.id}`);
+                console.log(`current song's ID is ${songId.toString()}`);
+                client.res.write(`data: ${JSON.stringify({eventData, relatedComments, songId})}\n\n`)
+            };
         })
     });
 

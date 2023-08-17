@@ -2,12 +2,22 @@ import express from 'express';
 import {Comments} from "../models/schemas/Comments";
 import {Users} from "../models/schemas/Users";
 
+let clients = []
+
 const sseRouter = express.Router();
 
-sseRouter.get('/comment-on-song', async (req, res) => {
+sseRouter.get('/comment-on-song/:songId', async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+
+    const clientId = req.params.songId;
+    const newClient = {
+      id: clientId,
+      res,
+    };
+    clients.push(newClient)
+    console.log(`${clientId} connected`);
 
     const commentStream = Comments.watch();
 
@@ -19,15 +29,25 @@ sseRouter.get('/comment-on-song', async (req, res) => {
         };
         const commentId = eventData.documentKey._id;
         const comment = await Comments.findById(commentId);
-        const songId = comment?.song['_id'];
+        const songId = comment.song['_id'];
 
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});
-        res.write(`data: ${JSON.stringify({eventData, relatedComments, songId})}\n\n`);
+        clients.forEach(client=>{
+            if(client.id === songId.toString()) {
+                let clientIDs = clients.map(client=>client.id)
+                console.log(clientIDs);
+                console.log(`send res to ${client.id}`);
+                console.log(`current song's ID is ${songId.toString()}`);
+                client.res.write(`data: ${JSON.stringify({eventData, relatedComments, songId})}\n\n`)
+            };
+        })
     });
 
     req.on('close', () => {
-        commentStream.close();
+        console.log(`${clientId} - Connection closed`);
+        commentStream.close()
+        clients = clients.filter(client => client.id !== clientId);
     });
 });
 sseRouter.get('/comment-on-playlist/:playlistId', async (req, res) => {

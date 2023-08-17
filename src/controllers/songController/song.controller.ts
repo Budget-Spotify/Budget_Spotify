@@ -3,6 +3,7 @@ import { Composers } from "../../models/schemas/Composers";
 import { Tags } from "../../models/schemas/Tags";
 import { Songs } from "../../models/schemas/Songs";
 import { Playlists } from "../../models/schemas/Playlists";
+import {PlaylistLikeCounts} from "../../models/schemas/PlaylistLikeCounts";
 import { Users } from "../../models/schemas/Users";
 export class SongController {
     static async getPublicSongs(req, res) {
@@ -132,6 +133,8 @@ export class SongController {
         try {
             const playlistId = req.params["playlistId"];
             const playlist = await Playlists.findById(playlistId)
+                .populate({ path: 'songs', model: Songs })
+                .populate({ path: 'playlistLikeCounts', model: PlaylistLikeCounts})
                 .populate({ path: 'songs', model: Songs })
                 .populate({path:'uploader',model:Users})
             res.status(200).json({ playlist: playlist });

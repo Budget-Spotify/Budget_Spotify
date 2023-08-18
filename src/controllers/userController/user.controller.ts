@@ -259,7 +259,6 @@ class UserController {
                 uploader: req.user.id,
                 playlistName: req.body.playlistName,
                 avatar: req.body.avatar,
-                uploadTime: new Date,
                 description: req.body.description,
             })
             await newPlayList.save()

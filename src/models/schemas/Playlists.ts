@@ -14,7 +14,7 @@ const playlistSchema = new Schema<IPlaylists>({
     uploader:{type:Schema.Types.ObjectId,ref:'Users'},
     playlistName: String,
     avatar: String,
-    uploadTime: Date,
+    uploadTime: {type: Date, default: Date.now},
     description: String,
     songs: [{ type: Schema.Types.ObjectId, ref: 'Songs' }],
     playlistLikeCounts: [{type: Schema.Types.ObjectId, ref: 'PlaylistLikeCounts'}],

@@ -5,6 +5,7 @@ import {Songs} from "../../models/schemas/Songs";
 import {Playlists} from "../../models/schemas/Playlists";
 import {PlaylistLikeCounts} from "../../models/schemas/PlaylistLikeCounts";
 import {Users} from "../../models/schemas/Users";
+import mongoose from "mongoose";
 
 export class SongController {
     static async getPublicSongs(req, res) {
@@ -77,19 +78,17 @@ export class SongController {
 
     static async getRandomSong(req, res) {
         try {
-            let existingSongIds = req.body;
+            let ids = req.body.map(item => new mongoose.Types.ObjectId(item) )
             let randomSong = await Songs.aggregate([
-                {$match: {isPublic: true, _id: {$nin: existingSongIds}}},
+                {$match: {isPublic: true, _id: {$nin: ids}}},
                 {$sample: {size: 1}}
             ]);
-            res.status(200).json({
-                status: 'succeeded',
-                data: randomSong[0]
-            });
+            if(randomSong[0].songName) res.status(200).json({status: 'succeeded',data: randomSong[0]})
+            else res.status(200).json({status:'succeeded', data: 'No song available'});
         } catch (err) {
             res.status(404).json({
                 status: 'failed',
-                message: err.message
+                message: 'no song left!!!'
             });
         }
     }

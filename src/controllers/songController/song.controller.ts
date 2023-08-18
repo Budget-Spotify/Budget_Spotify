@@ -9,7 +9,8 @@ import {Users} from "../../models/schemas/Users";
 export class SongController {
     static async getPublicSongs(req, res) {
         try {
-            let songs = await Songs.find({isPublic: true}).sort({uploadTime: -1});
+            let songs = await Songs.find({isPublic: true})
+            .sort({uploadTime: -1});
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',

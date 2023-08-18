@@ -1,4 +1,3 @@
-import { model } from 'mongoose';
 import { Songs } from "../../models/schemas/Songs";
 import { Users } from "../../models/schemas/Users";
 import { Playlists } from "../../models/schemas/Playlists";
@@ -9,7 +8,7 @@ import { Tags } from '../../models/schemas/Tags';
 import {Comments} from "../../models/schemas/Comments";
 import {SongLikeCounts} from "../../models/schemas/SongLikeCounts";
 import {PlaylistLikeCounts} from "../../models/schemas/PlaylistLikeCounts";
-import {ObjectId} from "mongodb";
+import {NotifyController} from "../notifyController/notify.controller";
 
 class UserController {
     static async addSong(req, res) {
@@ -397,7 +396,7 @@ class UserController {
 
                 res.status(401).json({
                     status: "failed",
-                    messae: "you have not permission to delete"
+                    message: "you have not permission to delete"
                 })
             }
         } catch (err) {
@@ -500,7 +499,9 @@ class UserController {
                 content: content
             });
 
-            res.status(201).json({ message: 'Comment created successfully', comment: comment }); // check later if need return comment
+            const notify = await NotifyController.createNotify("song", null, song, "comment");
+
+            res.status(201).json({ message: 'Comment created successfully', comment: comment, notify: notify });
         } catch (err) {
             res.status(500).json({
                 status: 'failed',
@@ -550,7 +551,9 @@ class UserController {
                 content: content
             });
 
-            res.status(201).json({ message: 'Comment created successfully', comment: comment }); // check later if need return comment
+            const notify = await NotifyController.createNotify("playlist", playlist, null, "comment");
+
+            res.status(201).json({ message: 'Comment created successfully', comment: comment, notify: notify });
         } catch (err) {
             res.status(500).json({
                 status: 'failed',
@@ -581,7 +584,9 @@ class UserController {
                 await song.save();
                 await user.save();
 
-                res.status(201).json({message: 'Song like successfully'});
+                const notify = await NotifyController.createNotify("song", null, song, "like");
+
+                res.status(201).json({message: 'Song like successfully', notify: notify});
             } else {
                 return res.status(400).json({ message: 'Song like already' });
             }
@@ -639,7 +644,9 @@ class UserController {
                 await playlist.save();
                 await user.save();
 
-                res.status(201).json({message: 'Playlist like successfully'});
+                const notify = await NotifyController.createNotify("playlist", playlist, null, "like");
+
+                res.status(201).json({message: 'Playlist like successfully', notify: notify});
             } else {
                 return res.status(400).json({ message: 'Playlist like already' });
             }

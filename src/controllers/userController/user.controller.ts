@@ -254,16 +254,11 @@ class UserController {
     static async createPlaylist(req, res) {
         try {
             let user = await Users.findOne({ _id: req.user.id })
-            const date = new Date();
-            const day = date.getDate();
-            const month = date.getMonth() + 1;
-            const year = date.getFullYear();
-            const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+            
             let newPlayList = new Playlists({
                 uploader: req.user.id,
                 playlistName: req.body.playlistName,
                 avatar: req.body.avatar,
-                uploadTime: formattedDate,
                 description: req.body.description,
             })
             await newPlayList.save()
@@ -408,11 +403,7 @@ class UserController {
     static async editPlayList(req, res) {
         try {
             const playlist = await Playlists.findOne({ _id: req.body._id })
-            const date = new Date();
-            const day = date.getDate();
-            const month = date.getMonth() + 1;
-            const year = date.getFullYear();
-            const formattedDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+            
             if (!playlist) {
                 const data = {
                     status: "failed",
@@ -423,7 +414,7 @@ class UserController {
                 playlist.playlistName = req.body.playlistName
                 playlist.description = req.body.description
                 playlist.avatar = req.body.avatar
-                playlist.uploadTime = formattedDate
+                playlist.uploadTime = new Date()
                 await playlist.save()
                 res.status(200).json({
                     status: "success",
@@ -490,7 +481,10 @@ class UserController {
             const formattedDate = new Date().toLocaleDateString('en-GB', {
                 day: '2-digit',
                 month: '2-digit',
-                year: 'numeric'
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
             });
 
             const comment = await Comments.create({

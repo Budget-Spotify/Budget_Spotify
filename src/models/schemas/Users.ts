@@ -11,7 +11,8 @@ interface IUsers {
     avatar: string;
     playlist: object[];
     songsUploaded: object[];
-
+    songLikeCounts: object[];
+    playlistLikeCounts: object[];
 }
 
 const userSchema = new Schema<IUsers>({
@@ -24,7 +25,9 @@ const userSchema = new Schema<IUsers>({
     gender: String,
     avatar: String,
     playlist: [{type: Schema.Types.ObjectId, ref: 'Playlists'}],
-    songsUploaded: [{type: Schema.Types.ObjectId, ref: 'Songs'}]
+    songsUploaded: [{type: Schema.Types.ObjectId, ref: 'Songs'}],
+    songLikeCounts: [{type: Schema.Types.ObjectId, ref: 'SongLikeCounts'}],
+    playlistLikeCounts: [{type: Schema.Types.ObjectId, ref: 'PlaylistLikeCounts'}]
 });
 
 export const Users = model<IUsers>('Users', userSchema, 'users');

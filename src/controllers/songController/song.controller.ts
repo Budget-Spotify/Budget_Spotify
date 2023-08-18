@@ -10,7 +10,7 @@ export class SongController {
     static async getPublicSongs(req, res) {
         try {
             let songs = await Songs.find({isPublic: true})
-            .sort({uploadTime: -1});
+                .sort({uploadTime: -1});
             if (songs.length > 0) {
                 res.status(200).json({
                     status: 'succeeded',
@@ -40,7 +40,7 @@ export class SongController {
                 foundSongs.sort((a, b) => b.songLikeCounts.length - a.songLikeCounts.length);
                 const foundPlaylists = await Playlists.find({
                     playlistName: {$regex: new RegExp(songName, 'i')},
-                })
+                }).sort({uploadTime: -1});
                 foundPlaylists.sort((a, b) => b.playlistLikeCounts.length - a.playlistLikeCounts.length);
                 const foundSingers = await Singers.find({
                     name: {$regex: new RegExp(songName, 'i')},
@@ -59,7 +59,9 @@ export class SongController {
 
                 songs.sort((a, b) => b.songLikeCounts.length - a.songLikeCounts.length);
 
-                let playlists = await Playlists.find().exec();
+                let playlists = await Playlists.find()
+                    .sort({uploadTime: -1})
+                    .exec();
                 playlists.sort((a, b) => b.playlistLikeCounts.length - a.playlistLikeCounts.length);
                 let singers = await Singers.find().exec();
 

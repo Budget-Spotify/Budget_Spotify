@@ -58,7 +58,7 @@ export class SongController {
 
                 songs.sort((a, b) => b.songLikeCounts.length - a.songLikeCounts.length);
 
-                let playlists = await Playlists.find().sort({uploadTime: -1}).exec();
+                let playlists = await Playlists.find().exec();
                 playlists.sort((a, b) => b.playlistLikeCounts.length - a.playlistLikeCounts.length);
                 let singers = await Singers.find().exec();
 

@@ -4,7 +4,7 @@ interface IPlaylists {
     uploader:object
     playlistName: string;
     avatar: string;
-    uploadTime: string;
+    uploadTime: Date;
     description: string;
     songs: object[],
     playlistLikeCounts: object[];
@@ -14,7 +14,7 @@ const playlistSchema = new Schema<IPlaylists>({
     uploader:{type:Schema.Types.ObjectId,ref:'Users'},
     playlistName: String,
     avatar: String,
-    uploadTime: String,
+    uploadTime: Date,
     description: String,
     songs: [{ type: Schema.Types.ObjectId, ref: 'Songs' }],
     playlistLikeCounts: [{type: Schema.Types.ObjectId, ref: 'PlaylistLikeCounts'}],

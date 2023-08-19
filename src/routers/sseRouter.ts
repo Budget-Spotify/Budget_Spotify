@@ -101,63 +101,75 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
         const notifyId = eventData.documentKey._id;
         const notify = await Notifies.findById(notifyId);
 
-        if (notify.action === "like") {
-            if (notify.entityType === "song") {
-                const notifyPopulate = await notify.populate({path: "song", model: Songs});
-                const song = notifyPopulate.song;
-                uploader = await Users.findById(song["uploader"]);
+        if (notify.entityType === "song") {
+            const notifyPopulate = await notify.populate({path: "song", model: Songs});
+            const song = notifyPopulate.song;
+            uploader = await Users.findById(song["uploader"]);
 
-                const allNotify = await Notifies.find({}).populate({
-                    path: 'song',
-                    model: Songs,
-                    populate: {
-                        path: 'uploader',
-                        model: Users
-                    }
-                });
+            const allNotify = await Notifies.find({}).populate({
+                path: 'song',
+                model: Songs,
+                populate: {
+                    path: 'uploader',
+                    model: Users
+                }
+            });
 
-                const allNotifyOfSong = allNotify.filter(notify => {
-                    return notify.song !== null;
-                })
-                const allNotifyOfUploader = allNotifyOfSong.filter(notify => {
-                    return notify.song["uploader"]._id.toString() === uploader._id.toString();
-                });
+            const allNotifyOfSong = allNotify.filter(notify => {
+                return notify.song !== null;
+            })
+            const allNotifyOfUploader = allNotifyOfSong.filter(notify => {
+                return notify.song["uploader"]._id.toString() === uploader._id.toString();
+            });
 
-                data = `data: ${JSON.stringify({eventData, allNotifyOfUploader, uploader})}\n\n`;
-            } else if (notify.entityType === "playlist") {
-                const notifyPopulate = await notify.populate({path: 'playlist', model: Playlists});
-                const playlist = notifyPopulate.playlist;
-                uploader = await Users.findById(playlist["uploader"]);
+            data = `data: ${JSON.stringify({eventData, allNotifyOfUploader, uploader})}\n\n`;
 
-                const allNotify = await Notifies.find({}).populate({
-                    path: 'playlist',
-                    model: Playlists,
-                    populate: {
-                        path: 'uploader',
-                        model: Users
-                    }
-                });
+        } else { //notify.entityType === "playlist"
+            const notifyPopulate = await notify.populate({path: 'playlist', model: Playlists});
+            const playlist = notifyPopulate.playlist;
+            uploader = await Users.findById(playlist["uploader"]);
 
-                const allNotifyOfPlaylist = allNotify.filter(notify => {
-                    return notify.playlist !== null;
-                })
+            const allNotify = await Notifies.find({}).populate({
+                path: 'playlist',
+                model: Playlists,
+                populate: {
+                    path: 'uploader',
+                    model: Users
+                }
+            });
 
-                const allNotifyOfUploader = allNotifyOfPlaylist.filter(notify => {
-                    return notify.playlist["uploader"]._id.toString() === uploader._id.toString();
-                });
+            const allNotifyOfPlaylist = allNotify.filter(notify => {
+                return notify.playlist !== null;
+            })
 
-                data = `data: ${JSON.stringify({eventData, allNotifyOfUploader, uploader})}\n\n`;
-            } else {
-                data = `data: Cannot find entityType in notify collection`;
-            }
-        } else { // notify.action === "comment"
+            const allNotifyOfUploader = allNotifyOfPlaylist.filter(notify => {
+                return notify.playlist["uploader"]._id.toString() === uploader._id.toString();
+            });
+
+            data = `data: ${JSON.stringify({eventData, allNotifyOfUploader, uploader})}\n\n`;
+        }
+
+        let userComment = [];
+
+        if (notify.action === "comment") {
+            const entityType: string = notify.entityType;
+            const entity: object = (entityType === "song" ? notify.song : notify.playlist);
+
+            const allCommentInEntity = await Comments.find({[entityType]: entity['_id']});
+            const commentingUsersExceptUploader = allCommentInEntity
+                .filter(commentInEntity => commentInEntity.user.toString() !== uploader._id.toString())
+                .map(commentInEntity => commentInEntity.user.toString());
+
+            userComment = Array.from(new Set(commentingUsersExceptUploader))
 
         }
 
-        const uploaderId = uploader._id
+        const uploaderId = uploader._id;
+        userComment.push(uploaderId);
+
         clientNeedNotify.forEach(client => {
-            if (client.id === uploaderId.toString()) {
-                client.res.write(`${data}`)
+            if (userComment.includes(client.id)) {
+                client.res.write(`${data}`);
             }
         })
     });

@@ -580,7 +580,7 @@ class UserController {
 
                 const notify = await NotifyController.createNotify("song", null, song, "like");
 
-                res.status(201).json({message: 'Song like successfully', notify: notify});
+                res.status(201).json({message: 'Song like successfully'});
             } else {
                 return res.status(400).json({ message: 'Song like already' });
             }
@@ -640,7 +640,7 @@ class UserController {
 
                 const notify = await NotifyController.createNotify("playlist", playlist, null, "like");
 
-                res.status(201).json({message: 'Playlist like successfully', notify: notify});
+                res.status(201).json({message: 'Playlist like successfully'});
             } else {
                 return res.status(400).json({ message: 'Playlist like already' });
             }

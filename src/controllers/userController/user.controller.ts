@@ -493,7 +493,7 @@ class UserController {
                 content: content
             });
 
-            const notify = await NotifyController.createNotify("song", null, song, "comment");
+            const notify = await NotifyController.createNotify("song", null, song, "comment", req);
 
             res.status(201).json({ message: 'Comment created successfully', comment: comment, notify: notify });
         } catch (err) {
@@ -545,7 +545,7 @@ class UserController {
                 content: content
             });
 
-            const notify = await NotifyController.createNotify("playlist", playlist, null, "comment");
+            const notify = await NotifyController.createNotify("playlist", playlist, null, "comment", req);
 
             res.status(201).json({ message: 'Comment created successfully', comment: comment, notify: notify });
         } catch (err) {
@@ -578,7 +578,7 @@ class UserController {
                 await song.save();
                 await user.save();
 
-                const notify = await NotifyController.createNotify("song", null, song, "like");
+                const notify = await NotifyController.createNotify("song", null, song, "like", req);
 
                 res.status(201).json({message: 'Song like successfully'});
             } else {
@@ -638,7 +638,7 @@ class UserController {
                 await playlist.save();
                 await user.save();
 
-                const notify = await NotifyController.createNotify("playlist", playlist, null, "like");
+                const notify = await NotifyController.createNotify("playlist", playlist, null, "like", req);
 
                 res.status(201).json({message: 'Playlist like successfully'});
             } else {

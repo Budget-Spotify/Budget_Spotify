@@ -111,17 +111,27 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
         const uploaderId = uploader._id.toString()
         userNeedNotify.push(uploaderId);
 
-        const allNotifyOfUploader = allNotify.filter(async item => {
+        const allNotifyOfUploader = [];
+        for (const item of allNotify) {
             if (item.entityType === "song") {
-                const itemPopulate = await item.populate({path: "song", model: Songs});
+                const itemPopulate = await (await item
+                    .populate({path: "song", model: Songs}))
+                    .populate({path: "source", model: Users});
                 const user = itemPopulate.song["uploader"];
-                return user["_id"].toString() === uploader["_id"].toString();
+                if (user["_id"].toString() === uploader["_id"].toString()) {
+                    allNotifyOfUploader.push(item);
+                }
             } else {
-                const itemPopulate = await item.populate({path: "playlist", model: Playlists});
+                const itemPopulate = await (await item
+                    .populate({path: "playlist", model: Playlists}))
+                    .populate({path: "source", model: Users});
                 const user = itemPopulate.playlist["uploader"];
-                return user["_id"].toString() === uploader["_id"].toString();
+                if (user["_id"].toString() === uploader["_id"].toString()) {
+                    allNotifyOfUploader.push(item);
+                }
             }
-        })
+        }
+
 
         if (notify.action === "comment") {
             const allCommentInEntity = await Comments.find({[entityType]: entity['_id']});

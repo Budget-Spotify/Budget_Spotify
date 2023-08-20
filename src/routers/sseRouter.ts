@@ -86,8 +86,13 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
         res,
     };
     allClient.push(newClient)
-    let userNeedNotify = [];
 
+    const allNotifyOfUser = await Notifies.find({})
+
+
+    // const allNotifyOfUser = [];
+
+    let userNeedNotify = [];
     const notifyStream = Notifies.watch();
 
     notifyStream.on('change', async (change) => {
@@ -111,23 +116,22 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
         const uploaderId = uploader._id.toString()
         userNeedNotify.push(uploaderId);
 
-        const allNotifyOfUploader = [];
         for (const item of allNotify) {
             if (item.entityType === "song") {
                 const itemPopulate = await (await item
                     .populate({path: "song", model: Songs}))
-                    .populate({path: "source", model: Users});
+                    .populate({path: "sourceUser", model: Users});
                 const user = itemPopulate.song["uploader"];
                 if (user["_id"].toString() === uploader["_id"].toString()) {
-                    allNotifyOfUploader.push(item);
+                    allNotifyOfUser.push(item);
                 }
             } else {
                 const itemPopulate = await (await item
                     .populate({path: "playlist", model: Playlists}))
-                    .populate({path: "source", model: Users});
+                    .populate({path: "sourceUser", model: Users});
                 const user = itemPopulate.playlist["uploader"];
                 if (user["_id"].toString() === uploader["_id"].toString()) {
-                    allNotifyOfUploader.push(item);
+                    allNotifyOfUser.push(item);
                 }
             }
         }
@@ -146,7 +150,7 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
         // const uploaderId = uploader._id; tranh uploader nhan thong bao 2 lan
         // userNeedNotify.push(uploaderId);
 
-        const data = `data: ${JSON.stringify({eventData, allNotifyOfUploader})}\n\n`;
+        const data = `data: ${JSON.stringify({eventData, allNotifyOfUploader: allNotifyOfUser})}\n\n`;
 
         allClient.forEach(client => {
             if (userNeedNotify.includes(client.id)) {

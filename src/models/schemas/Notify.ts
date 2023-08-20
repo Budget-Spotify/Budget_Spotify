@@ -1,12 +1,13 @@
 import {Schema, model} from "mongoose";
 
-interface INotify {
+export interface INotify {
     entityType: string;
     playlist: object | null;
     song: object | null;
     action: string;
     seen: boolean;
-    source: object;
+    sourceUser: object;
+    userNeedToSendNotify: object[];
 }
 
 const notifySchema = new Schema<INotify>({
@@ -15,7 +16,8 @@ const notifySchema = new Schema<INotify>({
     song: {type: Schema.Types.ObjectId, ref: 'Songs'},
     action: String,
     seen: { type: Boolean, default: false },
-    source: {type: Schema.Types.ObjectId, ref: 'Users'},
+    sourceUser: {type: Schema.Types.ObjectId, ref: 'Users'},
+    userNeedToSendNotify: [{type: Schema.Types.ObjectId, ref: 'Users'}],
 });
 
 export const Notifies = model<INotify>('Notifies', notifySchema, 'notifies');

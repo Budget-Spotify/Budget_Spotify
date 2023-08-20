@@ -18,7 +18,7 @@ sseRouter.get('/comment-on-song/:songId', async (req, res) => {
         id: clientId,
         res,
     };
-    clients.push(newClient)
+    clients.push(newClient);
 
     const commentStream = Comments.watch();
 
@@ -28,17 +28,19 @@ sseRouter.get('/comment-on-song/:songId', async (req, res) => {
             documentKey: change.documentKey,
             updatedFields: change.updateDescription?.updatedFields || null
         };
+
         const commentId = eventData.documentKey._id;
         const comment = await Comments.findById(commentId);
-        const songId = comment.song['_id'];
+        const songId = comment?.song['_id'];                    ////////------------------------------- data do not send to update frontend
 
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});
+
         clients.forEach(client => {
-            if (client.id === songId.toString()) {
+            if (client.id === songId?.toString()) {                    //--------------------------------------
                 client.res.write(`data: ${JSON.stringify({eventData, relatedComments, songId})}\n\n`)
             }
-        })
+        });
     });
 
     req.on('close', () => {
@@ -51,10 +53,21 @@ sseRouter.get('/comment-on-playlist/:playlistId', async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    let playlistId = req.params.playlistId
-    let relatedComments = await Comments.find({playlist: playlistId})
+
+    const clientId = req.params.playlistId;
+    const newClient = {
+        id: clientId,
+        res,
+    };
+    clients.push(newClient);
+
+    let relatedComments = await Comments.find({playlist: clientId})
         .populate({path: 'user', model: Users});
-    res.write(`data: ${JSON.stringify({relatedComments, playlistId})}\n\n`);
+
+    if (newClient.id === clientId.toString()) {
+        newClient.res.write(`data: ${JSON.stringify({relatedComments, clientId})}\n\n`);
+    }
+
     const commentStream = Comments.watch();
 
     commentStream.on('change', async (change) => {
@@ -63,9 +76,19 @@ sseRouter.get('/comment-on-playlist/:playlistId', async (req, res) => {
             documentKey: change.documentKey,
             updatedFields: change.updateDescription?.updatedFields || null
         };
-        relatedComments = await Comments.find({playlist: playlistId})
+
+        const commentId = eventData.documentKey._id;
+        const comment = await Comments.findById(commentId);
+        const playlistId = comment.playlist['_id'];
+
+        relatedComments = await Comments.find({playlist: clientId})
             .populate({path: 'user', model: Users});
-        res.write(`data: ${JSON.stringify({eventData, relatedComments, playlistId})}\n\n`);
+
+        clients.forEach(client => {
+            if (client.id === playlistId.toString()) {
+                client.res.write(`data: ${JSON.stringify({eventData, relatedComments, clientId})}\n\n`)
+            }
+        });
     });
 
     req.on('close', () => {
@@ -105,6 +128,7 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
     userNeedNotify.push(client._id.toString());
 
     let data = `data: ${JSON.stringify({allNotifyOfUploader: allNotifyOfUser})}\n\n`;
+
     if (userNeedNotify.includes(newClient.id)) {
         newClient.res.write(`${data}`);
     }
@@ -120,7 +144,6 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
 
         const notifyId = eventData.documentKey._id;
         const notify = await Notifies.findById(notifyId);
-        const entityType: string = notify.entityType;
 
         userNeedNotify = notify.userNeedToSendNotify;
         data = `data: ${JSON.stringify({eventData, allNotifyOfUploader: allNotifyOfUser})}\n\n`;

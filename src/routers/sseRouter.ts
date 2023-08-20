@@ -6,7 +6,7 @@ import {Songs} from "../models/schemas/Songs";
 import {Playlists} from "../models/schemas/Playlists";
 
 let clients = [];
-let clientNeedNotify = [];
+let allClient = [];
 
 const sseRouter = express.Router();
 
@@ -80,17 +80,15 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    let data = '';
     const clientId = req.params.userId;
     const newClient = {
         id: clientId,
         res,
     };
-    clientNeedNotify.push(newClient)
+    allClient.push(newClient)
+    let userNeedNotify = [];
 
     const notifyStream = Notifies.watch();
-
-    let uploader: any;
 
     notifyStream.on('change', async (change) => {
         const eventData = {
@@ -98,77 +96,63 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
             documentKey: change.documentKey,
             updatedFields: change.updateDescription?.updatedFields || null
         };
+
         const notifyId = eventData.documentKey._id;
         const notify = await Notifies.findById(notifyId);
+        const entityType: string = notify.entityType;
+        const entityObjectId: object = (entityType === "song" ? notify.song : notify.playlist);
 
-        if (notify.entityType === "song") {
-            const notifyPopulate = await notify.populate({path: "song", model: Songs});
-            const song = notifyPopulate.song;
-            uploader = await Users.findById(song["uploader"]);
+        const entity = entityType === "song"
+            ? await Songs.findById(entityObjectId)
+            : await Playlists.findById(entityObjectId);
 
-            const allNotify = await Notifies.find({}).populate({
-                path: 'song',
-                model: Songs,
-                populate: {
-                    path: 'uploader',
-                    model: Users
-                }
+        const uploader = await Users.findById(entity["uploader"]);
+        const allNotify = await Notifies.find({})
+        const uploaderId = uploader._id.toString()
+        userNeedNotify.push(uploaderId);
+
+        let allNotifyOfUploader: any;
+
+        if (entityType === "song") {
+            const allNotifyOfEntity = allNotify.filter(item => {
+                return item.entityType === "song";
             });
 
-            const allNotifyOfSong = allNotify.filter(notify => {
-                return notify.song !== null;
-            })
-            const allNotifyOfUploader = allNotifyOfSong.filter(notify => {
-                return notify.song["uploader"]._id.toString() === uploader._id.toString();
+            allNotifyOfUploader = allNotifyOfEntity.filter(async item => {
+                const itemPopulate = await item.populate({path: "song", model: Songs});
+                const user = itemPopulate.song["uploader"];
+                return user["_id"].toString() === uploader["_id"].toString();
             });
 
-            data = `data: ${JSON.stringify({eventData, allNotifyOfUploader, uploader})}\n\n`;
-
-        } else { //notify.entityType === "playlist"
-            const notifyPopulate = await notify.populate({path: 'playlist', model: Playlists});
-            const playlist = notifyPopulate.playlist;
-            uploader = await Users.findById(playlist["uploader"]);
-
-            const allNotify = await Notifies.find({}).populate({
-                path: 'playlist',
-                model: Playlists,
-                populate: {
-                    path: 'uploader',
-                    model: Users
-                }
+        } else {
+            const allNotifyOfEntity = allNotify.filter(item => {
+                return item.entityType === "playlist";
             });
 
-            const allNotifyOfPlaylist = allNotify.filter(notify => {
-                return notify.playlist !== null;
-            })
-
-            const allNotifyOfUploader = allNotifyOfPlaylist.filter(notify => {
-                return notify.playlist["uploader"]._id.toString() === uploader._id.toString();
+            allNotifyOfUploader = allNotifyOfEntity.filter(async item => {
+                const itemPopulate = await item.populate({path: "playlist", model: Playlists});
+                const user = itemPopulate.playlist["uploader"];
+                return user["_id"].toString() === uploader["_id"].toString();
             });
-
-            data = `data: ${JSON.stringify({eventData, allNotifyOfUploader, uploader})}\n\n`;
         }
-
-        let userComment = [];
 
         if (notify.action === "comment") {
-            const entityType: string = notify.entityType;
-            const entity: object = (entityType === "song" ? notify.song : notify.playlist);
-
             const allCommentInEntity = await Comments.find({[entityType]: entity['_id']});
             const commentingUsersExceptUploader = allCommentInEntity
-                .filter(commentInEntity => commentInEntity.user.toString() !== uploader._id.toString())
+                // .filter(commentInEntity => commentInEntity.user.toString() !== uploader._id.toString())  tranh uploader nhan thong bao 2 lan
                 .map(commentInEntity => commentInEntity.user.toString());
 
-            userComment = Array.from(new Set(commentingUsersExceptUploader))
-
+            userNeedNotify = Array.from(new Set(commentingUsersExceptUploader))
         }
 
-        const uploaderId = uploader._id;
-        userComment.push(uploaderId);
+        // const uploaderId = uploader._id; tranh uploader nhan thong bao 2 lan
+        // userNeedNotify.push(uploaderId);
 
-        clientNeedNotify.forEach(client => {
-            if (userComment.includes(client.id)) {
+        const data = `data: ${JSON.stringify({eventData, allNotifyOfUploader})}\n\n`;
+
+        allClient.forEach(client => {
+            if (userNeedNotify.includes(client.id)) {
+                console.log(111111111)
                 client.res.write(`${data}`);
             }
         })
@@ -176,7 +160,7 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
 
     req.on('close', () => {
         notifyStream.close()
-        clientNeedNotify = clientNeedNotify.filter(client => client.id !== clientId);
+        allClient = allClient.filter(client => client.id !== clientId);
     });
 });
 

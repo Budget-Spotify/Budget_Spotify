@@ -112,7 +112,7 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
         userNeedNotify.push(uploaderId);
 
         const allNotifyOfUploader = allNotify.filter(async item => {
-            if (item.entityType === "song"){
+            if (item.entityType === "song") {
                 const itemPopulate = await item.populate({path: "song", model: Songs});
                 const user = itemPopulate.song["uploader"];
                 return user["_id"].toString() === uploader["_id"].toString();
@@ -129,7 +129,8 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
                 // .filter(commentInEntity => commentInEntity.user.toString() !== uploader._id.toString())  tranh uploader nhan thong bao 2 lan
                 .map(commentInEntity => commentInEntity.user.toString());
 
-            userNeedNotify = Array.from(new Set(commentingUsersExceptUploader))
+            const userNeedNotify2 = Array.from(new Set(commentingUsersExceptUploader))
+            userNeedNotify.concat(userNeedNotify2)
         }
 
         // const uploaderId = uploader._id; tranh uploader nhan thong bao 2 lan
@@ -139,7 +140,6 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
 
         allClient.forEach(client => {
             if (userNeedNotify.includes(client.id)) {
-                console.log(111111111)
                 client.res.write(`${data}`);
             }
         })

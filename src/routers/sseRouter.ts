@@ -29,12 +29,12 @@ sseRouter.get('/comment-on-song/:songId', async (req, res) => {
         };
         const commentId = eventData.documentKey._id;
         const comment = await Comments.findById(commentId);
-        const songId = comment.song['_id'];
+        const songId = comment?.song['_id'];
 
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});
         clients.forEach(client=>{
-            if(client.id === songId.toString()) {
+            if(client.id === songId?.toString()) {
                 let clientIDs = clients.map(client=>client.id)
                 console.log(clientIDs);
                 console.log(`send res to ${client.id}`);

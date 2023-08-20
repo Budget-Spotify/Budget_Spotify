@@ -75,95 +75,89 @@ sseRouter.get('/comment-on-playlist/:playlistId', async (req, res) => {
     });
 });
 
-// sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
-//     res.setHeader('Content-Type', 'text/event-stream');
-//     res.setHeader('Cache-Control', 'no-cache');
-//     res.setHeader('Connection', 'keep-alive');
-//
-//     const clientId = req.params.userId;
-//     const newClient = {
-//         id: clientId,
-//         res,
-//     };
-//     allClient.push(newClient)
-//
-//     const allNotifyOfUser = await Notifies.find({})
-//
-//
-//     // const allNotifyOfUser = [];
-//
-//     let userNeedNotify = [];
-//     const notifyStream = Notifies.watch();
-//
-//     notifyStream.on('change', async (change) => {
-//         const eventData = {
-//             operationType: change.operationType,
-//             documentKey: change.documentKey,
-//             updatedFields: change.updateDescription?.updatedFields || null
-//         };
-//
-//         const notifyId = eventData.documentKey._id;
-//         const notify = await Notifies.findById(notifyId);
-//         const entityType: string = notify.entityType;
-//         const entityObjectId: object = (entityType === "song" ? notify.song : notify.playlist);
-//
-//         const entity = entityType === "song"
-//             ? await Songs.findById(entityObjectId)
-//             : await Playlists.findById(entityObjectId);
-//
-//         const uploader = await Users.findById(entity["uploader"]);
-//         const allNotify = await Notifies.find({})
-//         const uploaderId = uploader._id.toString()
-//         userNeedNotify.push(uploaderId);
-//
-//         for (const item of allNotify) {
-//             if (item.entityType === "song") {
-//                 const itemPopulate = await (await item
-//                     .populate({path: "song", model: Songs}))
-//                     .populate({path: "sourceUser", model: Users});
-//                 const user = itemPopulate.song["uploader"];
-//                 if (user["_id"].toString() === uploader["_id"].toString()) {
-//                     allNotifyOfUser.push(item);
-//                 }
-//             } else {
-//                 const itemPopulate = await (await item
-//                     .populate({path: "playlist", model: Playlists}))
-//                     .populate({path: "sourceUser", model: Users});
-//                 const user = itemPopulate.playlist["uploader"];
-//                 if (user["_id"].toString() === uploader["_id"].toString()) {
-//                     allNotifyOfUser.push(item);
-//                 }
-//             }
-//         }
-//
-//
-//         if (notify.action === "comment") {
-//             const allCommentInEntity = await Comments.find({[entityType]: entity['_id']});
-//             const commentingUsersExceptUploader = allCommentInEntity
-//                 // .filter(commentInEntity => commentInEntity.user.toString() !== uploader._id.toString())  tranh uploader nhan thong bao 2 lan
-//                 .map(commentInEntity => commentInEntity.user.toString());
-//
-//             const userNeedNotify2 = Array.from(new Set(commentingUsersExceptUploader))
-//             userNeedNotify.concat(userNeedNotify2)
-//         }
-//
-//         // const uploaderId = uploader._id; tranh uploader nhan thong bao 2 lan
-//         // userNeedNotify.push(uploaderId);
-//
-//         const data = `data: ${JSON.stringify({eventData, allNotifyOfUploader: allNotifyOfUser})}\n\n`;
-//
-//         allClient.forEach(client => {
-//             if (userNeedNotify.includes(client.id)) {
-//                 client.res.write(`${data}`);
-//             }
-//         })
-//     });
-//
-//     req.on('close', () => {
-//         notifyStream.close()
-//         allClient = allClient.filter(client => client.id !== clientId);
-//     });
-// });
+sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const clientId = req.params.userId;
+    const newClient = {
+        id: clientId,
+        res,
+    };
+    allClient.push(newClient)
+
+    const allNotifyOfUser = await Notifies.find({})
+
+    const notifyStream = Notifies.watch();
+
+    notifyStream.on('change', async (change) => {
+        const eventData = {
+            operationType: change.operationType,
+            documentKey: change.documentKey,
+            updatedFields: change.updateDescription?.updatedFields || null
+        };
+
+        const notifyId = eventData.documentKey._id;
+        const notify = await Notifies.findById(notifyId);
+        const entityType: string = notify.entityType;
+
+        const entity = entityType === "song"
+            ? await Songs.findById(notify.entity)
+            : await Playlists.findById(notify.entity);
+
+        const uploader = await Users.findById(entity["uploader"]);
+        const allNotify = await Notifies.find({})
+        const userNeedNotify = notify.userNeedToSendNotify;
+
+        // for (const item of allNotify) {
+        //     if (item.entityType === "song") {
+        //         const itemPopulate = await (await item
+        //             .populate({path: "song", model: Songs}))
+        //             .populate({path: "sourceUser", model: Users});
+        //         const user = itemPopulate.song["uploader"];
+        //         if (user["_id"].toString() === uploader["_id"].toString()) {
+        //             allNotifyOfUser.push(item);
+        //         }
+        //     } else {
+        //         const itemPopulate = await (await item
+        //             .populate({path: "playlist", model: Playlists}))
+        //             .populate({path: "sourceUser", model: Users});
+        //         const user = itemPopulate.playlist["uploader"];
+        //         if (user["_id"].toString() === uploader["_id"].toString()) {
+        //             allNotifyOfUser.push(item);
+        //         }
+        //     }
+        // }
+        //
+        //
+        // if (notify.action === "comment") {
+        //     const allCommentInEntity = await Comments.find({[entityType]: entity['_id']});
+        //     const commentingUsersExceptUploader = allCommentInEntity
+        //         // .filter(commentInEntity => commentInEntity.user.toString() !== uploader._id.toString())  tranh uploader nhan thong bao 2 lan
+        //         .map(commentInEntity => commentInEntity.user.toString());
+        //
+        //     const userNeedNotify2 = Array.from(new Set(commentingUsersExceptUploader))
+        //     userNeedNotify.concat(userNeedNotify2)
+        // }
+
+        // const uploaderId = uploader._id; tranh uploader nhan thong bao 2 lan
+        // userNeedNotify.push(uploaderId);
+
+        const data = `data: ${JSON.stringify({eventData, allNotifyOfUploader: allNotifyOfUser})}\n\n`;
+
+        allClient.forEach(client => {
+            if (userNeedNotify.includes(client.id)) {
+                client.res.write(`${data}`);
+            }
+        })
+    });
+
+    req.on('close', () => {
+        notifyStream.close()
+        allClient = allClient.filter(client => client.id !== clientId);
+    });
+});
 
 
 export default sseRouter;

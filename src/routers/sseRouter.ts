@@ -2,8 +2,6 @@ import express from 'express';
 import {Comments} from "../models/schemas/Comments";
 import {Users} from "../models/schemas/Users";
 import {Notifies} from "../models/schemas/Notify";
-import {Songs} from "../models/schemas/Songs";
-import {Playlists} from "../models/schemas/Playlists";
 
 let clients = [];
 let allClient = [];
@@ -87,7 +85,29 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
     };
     allClient.push(newClient)
 
-    const allNotifyOfUser = await Notifies.find({})
+    const client = await Users.findById(clientId)
+        .populate({
+            path: "notify",
+            model: Notifies,
+            populate: [
+                {
+                    path: "sourceUser",
+                    model: Users
+                },
+                {
+                    path: "entity",
+                }
+            ]
+        });
+
+    const allNotifyOfUser = client.notify;
+    let userNeedNotify = [];
+    userNeedNotify.push(client._id.toString());
+
+    let data = `data: ${JSON.stringify({allNotifyOfUploader: allNotifyOfUser})}\n\n`;
+    if (userNeedNotify.includes(newClient.id)) {
+        newClient.res.write(`${data}`);
+    }
 
     const notifyStream = Notifies.watch();
 
@@ -102,50 +122,8 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
         const notify = await Notifies.findById(notifyId);
         const entityType: string = notify.entityType;
 
-        const entity = entityType === "song"
-            ? await Songs.findById(notify.entity)
-            : await Playlists.findById(notify.entity);
-
-        const uploader = await Users.findById(entity["uploader"]);
-        const allNotify = await Notifies.find({})
-        const userNeedNotify = notify.userNeedToSendNotify;
-
-        // for (const item of allNotify) {
-        //     if (item.entityType === "song") {
-        //         const itemPopulate = await (await item
-        //             .populate({path: "song", model: Songs}))
-        //             .populate({path: "sourceUser", model: Users});
-        //         const user = itemPopulate.song["uploader"];
-        //         if (user["_id"].toString() === uploader["_id"].toString()) {
-        //             allNotifyOfUser.push(item);
-        //         }
-        //     } else {
-        //         const itemPopulate = await (await item
-        //             .populate({path: "playlist", model: Playlists}))
-        //             .populate({path: "sourceUser", model: Users});
-        //         const user = itemPopulate.playlist["uploader"];
-        //         if (user["_id"].toString() === uploader["_id"].toString()) {
-        //             allNotifyOfUser.push(item);
-        //         }
-        //     }
-        // }
-        //
-        //
-        // if (notify.action === "comment") {
-        //     const allCommentInEntity = await Comments.find({[entityType]: entity['_id']});
-        //     const commentingUsersExceptUploader = allCommentInEntity
-        //         // .filter(commentInEntity => commentInEntity.user.toString() !== uploader._id.toString())  tranh uploader nhan thong bao 2 lan
-        //         .map(commentInEntity => commentInEntity.user.toString());
-        //
-        //     const userNeedNotify2 = Array.from(new Set(commentingUsersExceptUploader))
-        //     userNeedNotify.concat(userNeedNotify2)
-        // }
-
-        // const uploaderId = uploader._id; tranh uploader nhan thong bao 2 lan
-        // userNeedNotify.push(uploaderId);
-
-        const data = `data: ${JSON.stringify({eventData, allNotifyOfUploader: allNotifyOfUser})}\n\n`;
-
+        userNeedNotify = notify.userNeedToSendNotify;
+        data = `data: ${JSON.stringify({eventData, allNotifyOfUploader: allNotifyOfUser})}\n\n`;
         allClient.forEach(client => {
             if (userNeedNotify.includes(client.id)) {
                 client.res.write(`${data}`);

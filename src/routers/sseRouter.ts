@@ -31,13 +31,13 @@ sseRouter.get('/comment-on-song/:songId', async (req, res) => {
 
         const commentId = eventData.documentKey._id;
         const comment = await Comments.findById(commentId);
-        const songId = comment?.song['_id'];                    ////////------------------------------- data do not send to update frontend
+        const songId = comment?.song['_id'];                    ////////------------------------------- because comment was deleted
 
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});
 
         clients.forEach(client => {
-            if (client.id === songId?.toString()) {                    //--------------------------------------
+            if (client.id === songId?.toString()) {                    //-------------------------------------- so we cant find songId to send it to frontend
                 client.res.write(`data: ${JSON.stringify({eventData, relatedComments, songId})}\n\n`)
             }
         });

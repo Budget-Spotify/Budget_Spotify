@@ -2,8 +2,7 @@ import {Schema, model} from "mongoose";
 
 export interface INotify {
     entityType: string;
-    playlist: object | null;
-    song: object | null;
+    entity: object | undefined;
     action: string;
     seen: boolean;
     sourceUser: object;
@@ -11,9 +10,8 @@ export interface INotify {
 }
 
 const notifySchema = new Schema<INotify>({
-    entityType: String,
-    playlist: {type: Schema.Types.ObjectId, ref: 'Playlists'} || {type: Schema.Types.ObjectId, ref: 'Songs'},
-    song: {type: Schema.Types.ObjectId, ref: 'Songs'},
+    entityType: String, //Playlists Songs
+    entity: { type: Schema.Types.ObjectId, refPath: 'entityType' },
     action: String,
     seen: { type: Boolean, default: false },
     sourceUser: {type: Schema.Types.ObjectId, ref: 'Users'},

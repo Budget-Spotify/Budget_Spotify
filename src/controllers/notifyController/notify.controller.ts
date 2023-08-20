@@ -8,19 +8,17 @@ export class NotifyController {
             const userId = req.user.id
             const user = await Users.findById(userId);
 
-            const uploader = await NotifyController.createUploaderNeedToSend(entityType, playlist, song, action, req); // ra user
+            const uploader = await NotifyController.createUploaderNeedToSend(entityType, playlist, song, action, req);
             const uploaderId =uploader["_id"]
-            const commentingUsers: any = await NotifyController.createCommentingUserNeedToSend(entityType, playlist, song, action, req); // ra cmt
+            const commentingUsers: any = await NotifyController.createCommentingUserNeedToSend(entityType, playlist, song, action, req);
             commentingUsers.push(uploaderId);
             const uniqueCommentingUsers = [...new Set(commentingUsers.map(userId => userId.toString()))];
-            console.log(uniqueCommentingUsers)
 
             const notify = await Notifies.create({
                 entityType: entityType,
-                playlist: playlist,
-                song: song,
+                entity: song || playlist,
                 action: action,
-                source: user,
+                sourceUser: user,
                 userNeedToSendNotify: uniqueCommentingUsers,
             });
             return {message: "Create notify complete", detail: notify};

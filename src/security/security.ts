@@ -13,7 +13,7 @@ export class Security {
             role: user.role || user.id
         },
             Security.jwtSecretKey,
-            { expiresIn: "10m" }
+            { expiresIn: "5h" }
         );
     }
 

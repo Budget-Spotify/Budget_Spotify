@@ -92,32 +92,88 @@ class AdminController {
     }
     static async addSinger(req,res){
         try{
-            let singer = await Singers.findOne({name:req.body.name})
-        if(singer){
-            res.status(204).json({
-                status:"Failed",
-                message:"Singer name has existed"
-            })
-        }else{
+            let singers = await Singers.find({name:req.body.name})
+        if(singers.length===0){
             let newSinger = new Singers({
                 name:req.body.name
             })
             await newSinger.save()
-            res.status(200).json({
+           return res.status(200).json({
                 status:"success",
                 message:"add singer success"
             })
         }
+         res.status(409).json({
+            status:"Failed",
+            message:"Singer name has existed"
+        })
         }catch(err){
             res.status(500).json({
                 message:"Failed"
             })
         }
     }
-    static async deleteSinger(req: any, res: any) {
+    static async deleteSinger(req, res) {
         try {
             await Singers.deleteOne({ _id: req.params.id});
             res.status(200).json({ message: "delete Singer success" })
+        } catch (err) {
+            res.status(500).json({
+                status: 'failed',
+                message: err.message
+            });
+        }
+    }
+
+    static async addComposer(req,res){
+        let composers =  await Composers.find({name:req.body.name})
+        if(composers.length === 0){
+            let newComposer = new Composers({
+                name:req.body.name
+            })
+            await newComposer.save()
+            return res.status(200).json({
+                status:"success",
+                message:"add Composer success"
+            })
+        }
+        res.status(409).json({
+            status:"Failed",
+            message:"Composer name has existed"
+        })
+    }
+    static async deleteComposer(req, res) {
+        try {
+            await Composers.deleteOne({ _id: req.params.id});
+            res.status(200).json({ message: "delete Composer success" })
+        } catch (err) {
+            res.status(500).json({
+                status: 'failed',
+                message: err.message
+            });
+        }
+    }
+    static async addTag(req,res){
+        let tags =  await Tags.find({name:req.body.name})
+        if(tags.length === 0){
+            let newTag = new Tags({
+                name:req.body.name
+            })
+            await newTag.save()
+            return res.status(200).json({
+                status:"success",
+                message:"add tag success"
+            })
+        }
+        res.status(409).json({
+            status:"Failed",
+            message:"tag name has existed"
+        })
+    }
+    static async deleteTag(req, res) {
+        try {
+            await Tags.deleteOne({ _id: req.params.id});
+            res.status(200).json({ message: "delete tag success" })
         } catch (err) {
             res.status(500).json({
                 status: 'failed',

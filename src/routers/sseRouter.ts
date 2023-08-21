@@ -33,7 +33,7 @@ sseRouter.get('/comment-on-song/:songId', async (req, res) => {
             fullDocument: change.operationType === 'delete' ? change.fullDocumentBeforeChange : change.fullDocument
         };
         
-        const songId = eventData.fullDocument.song['_id']; 
+        const songId = eventData.fullDocument.song?._id; 
         
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});
@@ -83,13 +83,13 @@ sseRouter.get('/comment-on-playlist/:playlistId', async (req, res) => {
             fullDocument: change.operationType === 'delete' ? change.fullDocumentBeforeChange : change.fullDocument
         };
 
-        const playlistId = eventData.fullDocument.playlist['_id'];
+        const playlistId = eventData.fullDocument.playlist?._id;
 
         relatedComments = await Comments.find({playlist: clientId})
             .populate({path: 'user', model: Users});
 
         clients.forEach(client => {
-            if (client.id === playlistId.toString()) {
+            if (client.id === playlistId?.toString()) {
                 client.res.write(`data: ${JSON.stringify({eventData, relatedComments, clientId})}\n\n`)
             }
         });

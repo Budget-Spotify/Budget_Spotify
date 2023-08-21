@@ -20,24 +20,26 @@ sseRouter.get('/comment-on-song/:songId', async (req, res) => {
     };
     clients.push(newClient);
 
-    const commentStream = Comments.watch();
+    const commentStream = Comments.watch([], { 
+        fullDocument: "updateLookup", 
+        fullDocumentBeforeChange: "required" 
+      });
 
     commentStream.on('change', async (change) => {
         const eventData = {
             operationType: change.operationType,
             documentKey: change.documentKey,
-            updatedFields: change.updateDescription?.updatedFields || null
+            updatedFields: change.updateDescription?.updatedFields || null,
+            fullDocument: change.operationType === 'delete' ? change.fullDocumentBeforeChange : change.fullDocument
         };
-
-        const commentId = eventData.documentKey._id;
-        const comment = await Comments.findById(commentId);
-        const songId = comment?.song['_id'];                    ////////------------------------------- because comment was deleted
-
+        
+        const songId = eventData.fullDocument.song['_id']; 
+        
         const relatedComments = await Comments.find({song: songId})
             .populate({path: 'user', model: Users});
 
         clients.forEach(client => {
-            if (client.id === songId?.toString()) {                    //-------------------------------------- so we cant find songId to send it to frontend
+            if (client.id === songId?.toString()) {
                 client.res.write(`data: ${JSON.stringify({eventData, relatedComments, songId})}\n\n`)
             }
         });
@@ -68,18 +70,20 @@ sseRouter.get('/comment-on-playlist/:playlistId', async (req, res) => {
         newClient.res.write(`data: ${JSON.stringify({relatedComments, clientId})}\n\n`);
     }
 
-    const commentStream = Comments.watch();
+    const commentStream = Comments.watch([], { 
+        fullDocument: "updateLookup", 
+        fullDocumentBeforeChange: "required" 
+      });
 
     commentStream.on('change', async (change) => {
         const eventData = {
             operationType: change.operationType,
             documentKey: change.documentKey,
-            updatedFields: change.updateDescription?.updatedFields || null
+            updatedFields: change.updateDescription?.updatedFields || null,
+            fullDocument: change.operationType === 'delete' ? change.fullDocumentBeforeChange : change.fullDocument
         };
 
-        const commentId = eventData.documentKey._id;
-        const comment = await Comments.findById(commentId);
-        const playlistId = comment.playlist['_id'];
+        const playlistId = eventData.fullDocument.playlist['_id'];
 
         relatedComments = await Comments.find({playlist: clientId})
             .populate({path: 'user', model: Users});

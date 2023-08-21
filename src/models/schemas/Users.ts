@@ -1,6 +1,6 @@
 import {Schema, model} from "mongoose";
 
-interface IUsers {
+export interface IUsers {
     username: string;
     password: string;
     role: string;
@@ -13,6 +13,7 @@ interface IUsers {
     songsUploaded: object[];
     songLikeCounts: object[];
     playlistLikeCounts: object[];
+    notify: object[];
 }
 
 const userSchema = new Schema<IUsers>({
@@ -27,7 +28,8 @@ const userSchema = new Schema<IUsers>({
     playlist: [{type: Schema.Types.ObjectId, ref: 'Playlists'}],
     songsUploaded: [{type: Schema.Types.ObjectId, ref: 'Songs'}],
     songLikeCounts: [{type: Schema.Types.ObjectId, ref: 'SongLikeCounts'}],
-    playlistLikeCounts: [{type: Schema.Types.ObjectId, ref: 'PlaylistLikeCounts'}]
+    playlistLikeCounts: [{type: Schema.Types.ObjectId, ref: 'PlaylistLikeCounts'}],
+    notify: [{type: Schema.Types.ObjectId, ref: 'Notifies'}],
 });
 
 export const Users = model<IUsers>('Users', userSchema, 'users');

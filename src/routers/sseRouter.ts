@@ -127,7 +127,7 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
             ]
         });
 
-    const allNotifyOfUser = client.notify;
+    let allNotifyOfUser = client.notify;
     let userNeedNotify = [];
     userNeedNotify.push(client._id.toString());
 
@@ -149,13 +149,20 @@ sseRouter.get('/notifyInNavbar/:userId', async (req, res) => {
         const notifyId = eventData.documentKey._id;
         const notify = await Notifies.findById(notifyId);
 
-        userNeedNotify = notify.userNeedToSendNotify;
-        data = `data: ${JSON.stringify({eventData, allNotifyOfUploader: allNotifyOfUser})}\n\n`;
-        allClient.forEach(client => {
-            if (userNeedNotify.includes(client.id)) {
-                client.res.write(`${data}`);
-            }
-        })
+        for (const userObjectId of notify.userNeedToSendNotify) {
+            const user = await Users.findById(userObjectId);
+            const userPopulate = await user.populate({path: "notify", model: Notifies});
+            const notifyArray = userPopulate.notify;
+
+            allNotifyOfUser = await Notifies.populate(notifyArray, {path: "entity sourceUser"});
+
+            data = `data: ${JSON.stringify({eventData, allNotifyOfUploader: allNotifyOfUser})}\n\n`;
+            allClient.forEach(client => {
+                if (userNeedNotify.includes(client.id) && client.id === user._id.toString()) {
+                    client.res.write(`${data}`);
+                }
+            })
+        }
     });
 
     req.on('close', () => {

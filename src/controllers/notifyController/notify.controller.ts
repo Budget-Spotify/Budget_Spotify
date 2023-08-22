@@ -9,7 +9,7 @@ export class NotifyController {
             const user = await Users.findById(userId);
 
             const uploader = await NotifyController.createUploaderNeedToSend(entityType, playlist, song, action, req);
-            const uploaderId =uploader["_id"]
+            const uploaderId = uploader["_id"]
             const commentingUsers: any = await NotifyController.createCommentingUserNeedToSend(entityType, playlist, song, action, req);
             commentingUsers.push(uploaderId);
             const userNeedToSendNotifyId = [...new Set(commentingUsers.map(userId => userId.toString()))];
@@ -48,11 +48,28 @@ export class NotifyController {
         try {
             const entity = entityType === "Songs" ? song : playlist;
             const property = entityType === "Songs" ? "song" : "playlist"
-            const allComment = await Comments.find({ [property]: entity["_id"] });
+            const allComment = await Comments.find({[property]: entity["_id"]});
             return allComment.map(comment => comment.user);
 
         } catch (e) {
             return {location: "createCommentingUserNeedToSend", message: "Create notify error", detail: e};
+        }
+    }
+
+    static async changeToSeen(req: any, res: any) {
+        try {
+            const notifyId = req.params["id"];
+            const notify = await Notifies.findById(notifyId);
+            if (notify.seen == false) {
+                notify.seen = true;
+                await notify.save();
+                res.status(200).json({message: "change to seen successful"});
+            } else {
+                res.status(200).json({message: "this notify already seen"});
+            }
+
+        } catch (e) {
+            res.status(500).json({location: "changeToSeen", message: "change notify to seen error", detail: e});
         }
     }
 

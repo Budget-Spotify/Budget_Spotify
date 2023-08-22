@@ -5,16 +5,16 @@ import {NotifyController} from "../../controllers/notifyController/notify.contro
 
 
 const userRouter = express.Router();
+userRouter.get('/song/detail/:id', userController.getOneSong);
+userRouter.get('/song/show-comment/:songId', userController.showCommentInSong);
 userRouter.use(Security.verifyToken);
 userRouter.post('/upload/song', userController.addSong);
 userRouter.post('/playlist/add-song/:playlistId', userController.addSongToPlaylist);
 userRouter.post('/playlist/remove-song/:playlistId', userController.removeSongFromPlaylist); // change to delete
 userRouter.post('/song/add-comment/:songId', userController.commentOnSong);
 userRouter.post('/playlist/add-comment/:playlistId', userController.commentOnPlaylist);
-userRouter.get('/song/show-comment/:songId', userController.showCommentInSong);
 userRouter.get('/song/delete-comment/:commentId', userController.deleteComment); // change to delete
 userRouter.get('/list/songs', userController.getSongs);
-userRouter.get('/song/detail/:id', userController.getOneSong);
 userRouter.get('/song/like/:id', userController.likeSong);   // change to post
 userRouter.get('/song/dislike/:id', userController.dislikeSong); // change to post
 userRouter.get('/playlist/like/:id', userController.likePlaylist); // change to post

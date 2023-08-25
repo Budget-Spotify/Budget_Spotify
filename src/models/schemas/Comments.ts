@@ -1,6 +1,6 @@
 import {Schema, model} from "mongoose";
 
-interface IComments {
+export interface IComments {
     playlist:object
     song: object;
     user: object;

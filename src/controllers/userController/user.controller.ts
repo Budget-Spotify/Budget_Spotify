@@ -312,7 +312,7 @@ class UserController {
 
     static async searchSong(req: any, res: any) {
         try {
-            const songName = req.query.songName;
+            const songName = req.query.name;
             if (songName) {
                 const foundSongs = await Songs.find({
                     songName: {$regex: new RegExp(songName, 'i')},
@@ -352,9 +352,7 @@ class UserController {
 
     static async removeSongFromPlaylist(req: any, res: any) {
         try {
-            const songId = req.body['songId'];
-            const playlistId = req.params["playlistId"];
-
+            const {playlistId, songId} = req.params;
             const playlist = await Playlists.findById(playlistId);
 
             if (playlist) {

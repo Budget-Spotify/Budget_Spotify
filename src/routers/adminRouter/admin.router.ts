@@ -4,14 +4,17 @@ import AdminController from "../../controllers/admincontroller/userManager.contr
 const adminApiRouter = express.Router()
 
 adminApiRouter.use(Security.verifyToken, Security.checkAdmin);
-adminApiRouter.get('/userlist', AdminController.getUserList);
-adminApiRouter.get('/singers',AdminController.getSingers);
-adminApiRouter.get('/composers',AdminController.getComposers);
-adminApiRouter.get('/tags',AdminController.getTags);
-adminApiRouter.post('/addsinger',AdminController.addSinger)
-adminApiRouter.delete('/deletesinger/:id',AdminController.deleteSinger)
-adminApiRouter.post('/addcomposer',AdminController.addComposer)
-adminApiRouter.delete('/deletecomposer/:id',AdminController.deleteComposer)
-adminApiRouter.post('/addtag',AdminController.addTag)
-adminApiRouter.delete('/deletetag/:id',AdminController.deleteTag)
+
+adminApiRouter.get('/user-list', AdminController.getUserList);
+adminApiRouter.get('/singers', AdminController.getSingers);
+adminApiRouter.get('/composers', AdminController.getComposers);
+adminApiRouter.get('/tags', AdminController.getTags);
+
+adminApiRouter.post('/singers', AdminController.addSinger);
+adminApiRouter.delete('/singers/:id', AdminController.deleteSinger);
+adminApiRouter.post('/composers', AdminController.addComposer);
+adminApiRouter.delete('/composers/:id', AdminController.deleteComposer);
+adminApiRouter.post('/tags', AdminController.addTag);
+adminApiRouter.delete('/tags/:id', AdminController.deleteTag);
+
 export default adminApiRouter

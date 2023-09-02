@@ -7,5 +7,6 @@ const authRouter = Router();
 authRouter.post('/register', AuthController.register);
 authRouter.post('/login', AuthController.login);
 authRouter.post('/google-login', Security.googleLogin);
-authRouter.get('/request-refresh-token', AuthController.reqRefreshToken);
+authRouter.post('/refresh-token', AuthController.reqRefreshToken);
+
 export default authRouter;

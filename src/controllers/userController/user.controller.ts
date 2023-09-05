@@ -267,7 +267,7 @@ class UserController {
             await user.save()
             res.status(200).json({
                 status: 'succeeded',
-                message: "add playlist succcess"
+                message: "add playlist success"
             })
         } catch (err) {
             res.status(404).json({status: "failed", message: err.message});

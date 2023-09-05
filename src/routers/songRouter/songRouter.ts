@@ -10,5 +10,6 @@ songRouter.post('/random-songs', SongController.getRandomSong);
 songRouter.get('/singers', SongController.getSingers);
 songRouter.get('/composers', SongController.getComposers);
 songRouter.get('/tags', SongController.getTags);
+songRouter.get('/playlists', SongController.getAllPlaylistPublic);
 
 export default songRouter;

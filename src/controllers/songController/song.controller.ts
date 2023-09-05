@@ -6,6 +6,7 @@ import {Playlists} from "../../models/schemas/Playlists";
 import {PlaylistLikeCounts} from "../../models/schemas/PlaylistLikeCounts";
 import {Users} from "../../models/schemas/Users";
 import mongoose from "mongoose";
+import {SongLikeCounts} from "../../models/schemas/SongLikeCounts";
 
 export class SongController {
     static async getPublicSongs(req, res) {
@@ -152,6 +153,18 @@ export class SongController {
             res.status(200).json({playlist: playlist});
         } catch (e) {
             res.status(404).json({message: "Can not find playlist"});
+        }
+    }
+
+    static async getAllPlaylistPublic(req: any, res: any){
+        try {
+            const allPlaylistPublic = await Playlists.find()
+                .populate({path: 'songs', model: Songs})
+                .populate({path: 'playlistLikeCounts', model: PlaylistLikeCounts})
+                .populate({path: 'uploader', model: Users})
+            res.status(200).json({allPlaylistPublic: allPlaylistPublic});
+        } catch (e) {
+            res.status(500).json({message: "Can not get playlist", error: e.message, location: "SongController.getAllPlaylistPublic"});
         }
     }
 }

@@ -65,7 +65,7 @@ export class Security {
             req.authMethod = "jwt";
             next();
         } catch (e) {
-            res.status(401).json("Token Invalid");
+            res.status(401).json({message: "Token Invalid", error: e.message, location: "Security.verifyToken"});
         }
     }
 

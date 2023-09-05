@@ -12,15 +12,15 @@ userRouter.use(Security.verifyToken);
 
 userRouter.post('/songs', userController.addSong);
 userRouter.post('/playlists/:playlistId/songs', userController.addSongToPlaylist);
-userRouter.delete('/playlists/:playlistId/songs/:songId', userController.removeSongFromPlaylist); // post to delete
+userRouter.delete('/playlists/:playlistId/songs/:songId', userController.removeSongFromPlaylist);
 userRouter.post('/songs/:songId/comments', userController.commentOnSong);
 userRouter.post('/playlists/:playlistId/comments', userController.commentOnPlaylist);
-userRouter.delete('/comments/:commentId', userController.deleteComment); // get to delete
+userRouter.delete('/comments/:commentId', userController.deleteComment);
 userRouter.get('/songs', userController.getSongs);
-userRouter.get('/song/like/:id', userController.likeSong);   // get to patch
-userRouter.get('/song/dislike/:id', userController.dislikeSong); // get to patch
-userRouter.get('/playlist/like/:id', userController.likePlaylist); // get to patch
-userRouter.get('/playlist/dislike/:id', userController.dislikePlaylist); // get to patch
+userRouter.patch('/songs/:id/like', userController.likeSong);
+userRouter.patch('/songs/:id/dislike/', userController.dislikeSong);
+userRouter.patch('/playlists/:id/like', userController.likePlaylist);
+userRouter.patch('/playlists/:id/dislike', userController.dislikePlaylist);
 userRouter.get('/details', userController.getDetail);
 userRouter.get('/playlists', userController.getPlayList);
 userRouter.get('/playlists/:playlistId/songs', userController.getSongInPlaylist);
